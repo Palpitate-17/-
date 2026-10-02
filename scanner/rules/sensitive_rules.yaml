@@ -1,0 +1,45 @@
+version: 1
+rules:
+  - id: SENSITIVE_PHONE_CN
+    name: 中国大陆手机号
+    description: 页面疑似公开展示了完整大陆手机号
+    match_type: regex
+    pattern: '(?<!\d)1[3-9]\d{9}(?!\d)'
+    severity: medium
+    mask: phone
+    exclude_values:
+      - '13800138000'
+    exclude_context_regex:
+      - '(示例|占位|测试).{0,12}$'
+    enabled: true
+    remediation: 对非必要公开的号码进行删除或脱敏，并检查页面发布流程。
+
+  - id: SENSITIVE_EMAIL
+    name: 电子邮箱
+    description: 页面疑似公开展示了邮箱地址
+    match_type: regex
+    pattern: '(?i)(?<![\w.+-])[\w.+-]+@[a-z0-9-]+(?:\.[a-z0-9-]+)+(?![\w.-])'
+    severity: low
+    mask: email
+    exclude_values:
+      - 'security@example.invalid'
+    exclude_context_regex:
+      - '(示例|占位|测试).{0,12}$'
+    enabled: true
+    remediation: 确认邮箱是否允许公开；否则删除、替换为统一联系入口或脱敏。
+
+  - id: SENSITIVE_SECRET_KEYWORD
+    name: 明文密钥关键词
+    description: 页面中出现疑似密钥或口令字段
+    match_type: keyword
+    keywords:
+      - 'api_secret='
+      - 'access_token='
+      - 'password='
+    severity: high
+    mask: token
+    exclude_values: []
+    exclude_context_regex:
+      - '(示例|占位|测试).{0,20}$'
+    enabled: true
+    remediation: 立即撤下并轮换相关凭据，改由安全的服务端密钥管理方案保存。

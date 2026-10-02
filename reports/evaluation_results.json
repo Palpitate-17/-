@@ -1,0 +1,351 @@
+{
+  "schema_version": 2,
+  "summary": {
+    "tp": 15,
+    "fp": 0,
+    "fn": 0,
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "fdr": 0.0
+  },
+  "coverage": {
+    "verified": true,
+    "total": 28,
+    "succeeded": 24,
+    "failed": 0,
+    "skipped": 4,
+    "unrecorded": 0,
+    "ratio": 0.8571
+  },
+  "case_metrics": {
+    "executed_positive_cases": 15,
+    "executed_negative_cases": 9,
+    "tn": 9,
+    "negative_cases_with_fp": 0,
+    "negative_case_fpr": 0.0,
+    "unassigned_findings": 0
+  },
+  "by_category": [
+    {
+      "category": "external_link_change",
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fdr": 0.0,
+      "total_cases": 5,
+      "executed_cases": 5
+    },
+    {
+      "category": "page_baseline_change",
+      "tp": 3,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fdr": 0.0,
+      "total_cases": 6,
+      "executed_cases": 6
+    },
+    {
+      "category": "sensitive_info",
+      "tp": 9,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "fdr": 0.0,
+      "total_cases": 13,
+      "executed_cases": 13
+    },
+    {
+      "category": "weak_configuration",
+      "tp": 0,
+      "fp": 0,
+      "fn": 0,
+      "precision": null,
+      "recall": null,
+      "f1": null,
+      "fdr": null,
+      "total_cases": 4,
+      "executed_cases": 0
+    }
+  ],
+  "mismatches": [],
+  "case_runs": [
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-leak",
+      "mode": "offline_fixture",
+      "case_id": "S-P01",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 2.62
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-leak",
+      "mode": "offline_fixture",
+      "case_id": "S-P02",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 2.62
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-leak",
+      "mode": "offline_fixture",
+      "case_id": "S-P03",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 2.62
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-placeholder",
+      "mode": "offline_fixture",
+      "case_id": "S-N01",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 1.001
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-placeholder",
+      "mode": "offline_fixture",
+      "case_id": "S-N02",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 1.001
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-placeholder",
+      "mode": "offline_fixture",
+      "case_id": "S-N03",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 1.001
+    },
+    {
+      "phase": "after",
+      "scenario_id": "baseline-after",
+      "mode": "offline_fixture",
+      "case_id": "B-P01",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 7.062
+    },
+    {
+      "phase": "after",
+      "scenario_id": "baseline-after",
+      "mode": "offline_fixture",
+      "case_id": "B-P02",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 7.062
+    },
+    {
+      "phase": "after",
+      "scenario_id": "baseline-after",
+      "mode": "offline_fixture",
+      "case_id": "B-P03",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 7.062
+    },
+    {
+      "phase": "none",
+      "scenario_id": "baseline-dynamic",
+      "mode": "offline_fixture",
+      "case_id": "B-N01",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 3.394
+    },
+    {
+      "phase": "after",
+      "scenario_id": "external-after",
+      "mode": "offline_fixture",
+      "case_id": "E-P01",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 1.942
+    },
+    {
+      "phase": "before",
+      "scenario_id": "external-before",
+      "mode": "offline_fixture",
+      "case_id": "E-N01",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 1.688
+    },
+    {
+      "phase": "none",
+      "scenario_id": "W-P01",
+      "mode": "offline_fixture",
+      "case_id": "W-P01",
+      "status": "skipped",
+      "reason": "弱配置检测由 lcx 实现，本地尚未接入该检测器"
+    },
+    {
+      "phase": "none",
+      "scenario_id": "W-P02",
+      "mode": "offline_fixture",
+      "case_id": "W-P02",
+      "status": "skipped",
+      "reason": "弱配置检测由 lcx 实现，本地尚未接入该检测器"
+    },
+    {
+      "phase": "none",
+      "scenario_id": "W-N01",
+      "mode": "offline_fixture",
+      "case_id": "W-N01",
+      "status": "skipped",
+      "reason": "弱配置检测由 lcx 实现，本地尚未接入该检测器"
+    },
+    {
+      "phase": "none",
+      "scenario_id": "W-N02",
+      "mode": "offline_fixture",
+      "case_id": "W-N02",
+      "status": "skipped",
+      "reason": "弱配置检测由 lcx 实现，本地尚未接入该检测器"
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-dynamic",
+      "mode": "offline_fixture",
+      "case_id": "S-P04",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.238
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-adjacent",
+      "mode": "offline_fixture",
+      "case_id": "S-P05",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.306
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-adjacent",
+      "mode": "offline_fixture",
+      "case_id": "S-P06",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.306
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-adjacent",
+      "mode": "offline_fixture",
+      "case_id": "S-P07",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.306
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-long",
+      "mode": "offline_fixture",
+      "case_id": "S-P08",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.246
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-json",
+      "mode": "offline_fixture",
+      "case_id": "S-P09",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.105
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-empty",
+      "mode": "offline_fixture",
+      "case_id": "S-N04",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.044
+    },
+    {
+      "phase": "after",
+      "scenario_id": "baseline-whitespace",
+      "mode": "offline_fixture",
+      "case_id": "B-N02",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.988
+    },
+    {
+      "phase": "restored",
+      "scenario_id": "baseline-restored",
+      "mode": "offline_fixture",
+      "case_id": "B-N03",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 1.007
+    },
+    {
+      "phase": "after",
+      "scenario_id": "external-form",
+      "mode": "offline_fixture",
+      "case_id": "E-P02",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.308
+    },
+    {
+      "phase": "none",
+      "scenario_id": "external-approved",
+      "mode": "offline_fixture",
+      "case_id": "E-N02",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.339
+    },
+    {
+      "phase": "after",
+      "scenario_id": "external-query",
+      "mode": "offline_fixture",
+      "case_id": "E-P03",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.285
+    }
+  ],
+  "notes": [
+    "finding 级 TP/FP/FN 与 case 级 TN/FPR 分开计算；null 表示分母为零或执行记录缺失。",
+    "跳过、失败、未记录的 case 不进入成功执行子集指标；必须同时查看 coverage。"
+  ],
+  "generated_at": "2026-10-02T15:48:37.811413+00:00",
+  "mode": "offline_fixture",
+  "environment": {
+    "python": "3.11.15",
+    "platform": "Windows",
+    "packages": {
+      "beautifulsoup4": "4.15.0",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "input_sha256": {
+    "scanner\\__init__.py": "28abe6dbcde8781746015d93eae571954d9fdbb589709aedc15b6965ae78046a",
+    "scanner\\adapters\\__init__.py": "f1ac042452c3db45208ebb7a93469333547047cf88fe5d68509f3fc951e908e5",
+    "scanner\\adapters\\hengnao.py": "c3a1e56373f582ea1c422edcf8a1a28bc1737b0cc0c71e6e07217498544fb7d2",
+    "scanner\\baseline.py": "95c12dd6a929b23a5979cfd7f900e65c7b8fce311bfcbbf0d2241569e86d896a",
+    "scanner\\common\\__init__.py": "8131e0396cdea972f9e53e5fd8a468dbb19e365ed92034988d6b67ff0a1a1925",
+    "scanner\\common\\masking.py": "7ab6682acca3c707e639b02b9303f640641a0b97789d8352c421d602b586316b",
+    "scanner\\common\\models.py": "2a48557c9fe7e2dab7b4367b32bcde139d7b91829c493735257c2a29cc81eb11",
+    "scanner\\common\\text_utils.py": "c22554b113b767c03dc1a4c0021ec183c05866cbf2de13dc560936b2db109a71",
+    "scanner\\external_links.py": "d63f802c2b83140740b8941f08f67282c5b3fc162da405fea0672339f772f33d",
+    "scanner\\rules\\sensitive_rules.yaml": "7a9e43fbff4dd17d7aae5edb0c52f66b9d740d6aba47fdf3594772a818736e74",
+    "scanner\\rules.py": "b97792cb77e83d82f0c5ee83baf8b31ea182b1630034584b7003c10321390229",
+    "scanner\\sensitive.py": "86a894a75674e9a0d982a227eb89e854a7dc33748341fc73bc561f4382935fd8",
+    "test_site\\pages\\baseline_after.html": "8874d91b574bfa7c5ccbe41a5bbf7122bfd7e94244d14052f52967b4840ab641",
+    "test_site\\pages\\baseline_before.html": "a8f29d45f2a24b3ee8b5891bcf16ed0e31f2aa234c21955a0933626525a7dcb7",
+    "test_site\\pages\\dynamic.html": "3dfd78125a2b7e3b9e18468c9ddb2a0c22d3ccd1859c40466de5506a355e6f03",
+    "test_site\\pages\\external_after.html": "4ef612b049f998384b11987f3d08a4215a0eb2c0891b96b758f1ab607bef9d37",
+    "test_site\\pages\\external_before.html": "2c7f3144b4ed397a6b52d6d3293e156775d3956081720ad7a044e7086ecff9b6",
+    "test_site\\pages\\sensitive_leak.html": "dc5fc2bdf9fb012b45f82045f242f20ffd8b22a62264c3261361982cdb123151",
+    "test_site\\pages\\sensitive_placeholder.html": "abf8ab96d28df049785cf30866f8aaa4ba829702ed87bad6e2bd5cecfcf3d533",
+    "tests\\evaluate.py": "1f9bec24854b76999a2ec14acf00f6f2fe24a7e5c858044fc2136c6b83baf844",
+    "tests\\fixtures\\allowed_domains.json": "456e8fe6752566b90df7e7ea6dd253db3fda0838ad34b66f5057c6f068a52aa1",
+    "tests\\fixtures\\local_cases.json": "587161ebc21de1a4d6a2a7f98a8904edcf1ba547cf3efe9e1b89a6bf688d855f",
+    "tests\\ground_truth.json": "70967fac2f665846e2149b23476ee15e901cd878657a6692ae7c1afcb1413daf",
+    "tests\\run_local_evaluation.py": "4ddead023796f983655f6264dc477ad19b507df9b4301125ae2c76faade05d3f"
+  },
+  "limitations": [
+    "实际调用 Python 检测器，未通过网络采集，也未接入 HTTP 服务或恒脑。",
+    "基线由可信本地 fixture 提供；未验证后端审批、调度、身份鉴权与复测状态。"
+  ],
+  "elapsed_ms": 59.718
+}

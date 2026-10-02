@@ -1,0 +1,24 @@
+from scanner.baseline import build_baseline, compare_baseline
+
+
+def test_detects_title_text_and_script_changes(page_factory):
+    before = page_factory("<html><head><title>主页</title></head><body>正常正文</body></html>")
+    after = page_factory(
+        "<html><head><title>维护页</title>"
+        '<script src="https://unknown.example.invalid/demo.js"></script>'
+        "</head><body>维护正文</body></html>"
+    )
+    baseline = build_baseline(before, ["test.local"])
+    rule_ids = {item.rule_id for item in compare_baseline(after, baseline, ["test.local"])}
+    assert {
+        "BASELINE_TITLE_CHANGED",
+        "BASELINE_TEXT_CHANGED",
+        "BASELINE_SCRIPT_ADDED",
+    } <= rule_ids
+
+
+def test_ignores_marked_dynamic_region(page_factory):
+    before = page_factory('<html><body><h1>不变</h1><p data-ignore="dynamic">10:00</p></body></html>')
+    after = page_factory('<html><body><h1>不变</h1><p data-ignore="dynamic">10:01</p></body></html>')
+    baseline = build_baseline(before, ["test.local"])
+    assert compare_baseline(after, baseline, ["test.local"]) == []

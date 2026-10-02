@@ -1,0 +1,500 @@
+{
+  "schema_version": 2,
+  "generated_at": "2026-10-02T15:48:37.811413+00:00",
+  "mode": "offline_fixture",
+  "findings": [
+    {
+      "category": "sensitive_info",
+      "rule_id": "SENSITIVE_PHONE_CN",
+      "severity": "medium",
+      "url": "http://127.0.0.1:8001/sensitive/leak",
+      "title": "中国大陆手机号",
+      "evidence": "敏感信息正例 误发布的内部联络页 值班电话：139****5678 联系邮箱：a***@corp.invalid api_secret=***",
+      "description": "页面疑似公开展示了完整大陆手机号",
+      "remediation": "对非必要公开的号码进行删除或脱敏，并检查页面发布流程。",
+      "metadata": {
+        "masked_value": "139****5678",
+        "source_kind": "visible_text"
+      },
+      "case_id": "S-P01",
+      "phase": "none"
+    },
+    {
+      "category": "sensitive_info",
+      "rule_id": "SENSITIVE_EMAIL",
+      "severity": "low",
+      "url": "http://127.0.0.1:8001/sensitive/leak",
+      "title": "电子邮箱",
+      "evidence": "敏感信息正例 误发布的内部联络页 值班电话：139****5678 联系邮箱：a***@corp.invalid api_secret=***",
+      "description": "页面疑似公开展示了邮箱地址",
+      "remediation": "确认邮箱是否允许公开；否则删除、替换为统一联系入口或脱敏。",
+      "metadata": {
+        "masked_value": "a***@corp.invalid",
+        "source_kind": "visible_text"
+      },
+      "case_id": "S-P02",
+      "phase": "none"
+    },
+    {
+      "category": "sensitive_info",
+      "rule_id": "SENSITIVE_SECRET_KEYWORD",
+      "severity": "high",
+      "url": "http://127.0.0.1:8001/sensitive/leak",
+      "title": "明文密钥关键词",
+      "evidence": "班电话：139****5678 联系邮箱：a***@corp.invalid api_secret=***",
+      "description": "页面中出现疑似密钥或口令字段",
+      "remediation": "立即撤下并轮换相关凭据，改由安全的服务端密钥管理方案保存。",
+      "metadata": {
+        "masked_value": "api_secret=***",
+        "source_kind": "visible_text"
+      },
+      "case_id": "S-P03",
+      "phase": "none"
+    },
+    {
+      "category": "page_baseline_change",
+      "rule_id": "BASELINE_TITLE_CHANGED",
+      "severity": "medium",
+      "url": "http://127.0.0.1:8001/baseline/home",
+      "title": "页面标题变化",
+      "evidence": "'校园门户' -> '校园门户维护通知'",
+      "description": "当前页面状态与已确认基线不一致。",
+      "remediation": "人工核对变化原因；合法发布则审批后更新基线，否则回滚并排查。",
+      "metadata": {},
+      "case_id": "B-P01",
+      "phase": "after"
+    },
+    {
+      "category": "page_baseline_change",
+      "rule_id": "BASELINE_TEXT_CHANGED",
+      "severity": "low",
+      "url": "http://127.0.0.1:8001/baseline/home",
+      "title": "页面正文变化",
+      "evidence": "归一化正文 SHA-256 与基线不同",
+      "description": "当前页面状态与已确认基线不一致。",
+      "remediation": "人工核对变化原因；合法发布则审批后更新基线，否则回滚并排查。",
+      "metadata": {},
+      "case_id": "B-P03",
+      "phase": "after"
+    },
+    {
+      "category": "page_baseline_change",
+      "rule_id": "BASELINE_SCRIPT_ADDED",
+      "severity": "high",
+      "url": "http://127.0.0.1:8001/baseline/home",
+      "title": "页面新增脚本",
+      "evidence": "https://unknown.example.invalid/assets/demo.js",
+      "description": "当前页面状态与已确认基线不一致。",
+      "remediation": "人工核对变化原因；合法发布则审批后更新基线，否则回滚并排查。",
+      "metadata": {},
+      "case_id": "B-P02",
+      "phase": "after"
+    },
+    {
+      "category": "external_link_change",
+      "rule_id": "EXTERNAL_LINK_ADDED",
+      "severity": "medium",
+      "url": "http://127.0.0.1:8001/external/page",
+      "title": "页面新增外部链接",
+      "evidence": "https://partner.example.invalid/campaign?source=***",
+      "description": "当前页面相对已确认基线新增了外部域名资源或链接。",
+      "remediation": "核对该域名、用途和引入时间；确认无误后再更新基线。",
+      "metadata": {
+        "added_url": "https://partner.example.invalid/campaign?source=***"
+      },
+      "case_id": "E-P01",
+      "phase": "after"
+    },
+    {
+      "category": "sensitive_info",
+      "rule_id": "SENSITIVE_PHONE_CN",
+      "severity": "medium",
+      "url": "http://127.0.0.1:8001/fixtures/sensitive-dynamic",
+      "title": "中国大陆手机号",
+      "evidence": "值班电话：139****5678",
+      "description": "页面疑似公开展示了完整大陆手机号",
+      "remediation": "对非必要公开的号码进行删除或脱敏，并检查页面发布流程。",
+      "metadata": {
+        "masked_value": "139****5678",
+        "source_kind": "visible_text"
+      },
+      "case_id": "S-P04",
+      "phase": "none"
+    },
+    {
+      "category": "sensitive_info",
+      "rule_id": "SENSITIVE_PHONE_CN",
+      "severity": "medium",
+      "url": "http://127.0.0.1:8001/fixtures/sensitive-adjacent",
+      "title": "中国大陆手机号",
+      "evidence": "电话：139****5678 邮箱：a***@corp.invalid api_secret=***",
+      "description": "页面疑似公开展示了完整大陆手机号",
+      "remediation": "对非必要公开的号码进行删除或脱敏，并检查页面发布流程。",
+      "metadata": {
+        "masked_value": "139****5678",
+        "source_kind": "visible_text"
+      },
+      "case_id": "S-P05",
+      "phase": "none"
+    },
+    {
+      "category": "sensitive_info",
+      "rule_id": "SENSITIVE_EMAIL",
+      "severity": "low",
+      "url": "http://127.0.0.1:8001/fixtures/sensitive-adjacent",
+      "title": "电子邮箱",
+      "evidence": "电话：139****5678 邮箱：a***@corp.invalid api_secret=***",
+      "description": "页面疑似公开展示了邮箱地址",
+      "remediation": "确认邮箱是否允许公开；否则删除、替换为统一联系入口或脱敏。",
+      "metadata": {
+        "masked_value": "a***@corp.invalid",
+        "source_kind": "visible_text"
+      },
+      "case_id": "S-P06",
+      "phase": "none"
+    },
+    {
+      "category": "sensitive_info",
+      "rule_id": "SENSITIVE_SECRET_KEYWORD",
+      "severity": "high",
+      "url": "http://127.0.0.1:8001/fixtures/sensitive-adjacent",
+      "title": "明文密钥关键词",
+      "evidence": "电话：139****5678 邮箱：a***@corp.invalid api_secret=***",
+      "description": "页面中出现疑似密钥或口令字段",
+      "remediation": "立即撤下并轮换相关凭据，改由安全的服务端密钥管理方案保存。",
+      "metadata": {
+        "masked_value": "api_secret=***",
+        "source_kind": "visible_text"
+      },
+      "case_id": "S-P07",
+      "phase": "none"
+    },
+    {
+      "category": "sensitive_info",
+      "rule_id": "SENSITIVE_SECRET_KEYWORD",
+      "severity": "high",
+      "url": "http://127.0.0.1:8001/fixtures/sensitive-long",
+      "title": "明文密钥关键词",
+      "evidence": "api_secret=***; 联系：138****8000",
+      "description": "页面中出现疑似密钥或口令字段",
+      "remediation": "立即撤下并轮换相关凭据，改由安全的服务端密钥管理方案保存。",
+      "metadata": {
+        "masked_value": "api_secret=***",
+        "source_kind": "visible_text"
+      },
+      "case_id": "S-P08",
+      "phase": "none"
+    },
+    {
+      "category": "sensitive_info",
+      "rule_id": "SENSITIVE_SECRET_KEYWORD",
+      "severity": "high",
+      "url": "http://127.0.0.1:8001/fixtures/sensitive-json",
+      "title": "明文密钥关键词",
+      "evidence": "{\"api_secret\": ***}",
+      "description": "页面中出现疑似密钥或口令字段",
+      "remediation": "立即撤下并轮换相关凭据，改由安全的服务端密钥管理方案保存。",
+      "metadata": {
+        "masked_value": "\"api_secret\": ***",
+        "source_kind": "response_text"
+      },
+      "case_id": "S-P09",
+      "phase": "none"
+    },
+    {
+      "category": "external_link_change",
+      "rule_id": "EXTERNAL_LINK_ADDED",
+      "severity": "medium",
+      "url": "http://127.0.0.1:8001/fixtures/external-form",
+      "title": "页面新增外部链接",
+      "evidence": "https://outside.example.invalid/send?token=***&x=***",
+      "description": "当前页面相对已确认基线新增了外部域名资源或链接。",
+      "remediation": "核对该域名、用途和引入时间；确认无误后再更新基线。",
+      "metadata": {
+        "added_url": "https://outside.example.invalid/send?token=***&x=***"
+      },
+      "case_id": "E-P02",
+      "phase": "after"
+    },
+    {
+      "category": "external_link_change",
+      "rule_id": "EXTERNAL_LINK_ADDED",
+      "severity": "medium",
+      "url": "http://127.0.0.1:8001/fixtures/external-query",
+      "title": "页面新增外部链接",
+      "evidence": "https://outside.example.invalid/page?access_token=***",
+      "description": "当前页面相对已确认基线新增了外部域名资源或链接。",
+      "remediation": "核对该域名、用途和引入时间；确认无误后再更新基线。",
+      "metadata": {
+        "added_url": "https://outside.example.invalid/page?access_token=***"
+      },
+      "case_id": "E-P03",
+      "phase": "after"
+    }
+  ],
+  "case_runs": [
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-leak",
+      "mode": "offline_fixture",
+      "case_id": "S-P01",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 2.62
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-leak",
+      "mode": "offline_fixture",
+      "case_id": "S-P02",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 2.62
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-leak",
+      "mode": "offline_fixture",
+      "case_id": "S-P03",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 2.62
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-placeholder",
+      "mode": "offline_fixture",
+      "case_id": "S-N01",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 1.001
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-placeholder",
+      "mode": "offline_fixture",
+      "case_id": "S-N02",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 1.001
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-placeholder",
+      "mode": "offline_fixture",
+      "case_id": "S-N03",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 1.001
+    },
+    {
+      "phase": "after",
+      "scenario_id": "baseline-after",
+      "mode": "offline_fixture",
+      "case_id": "B-P01",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 7.062
+    },
+    {
+      "phase": "after",
+      "scenario_id": "baseline-after",
+      "mode": "offline_fixture",
+      "case_id": "B-P02",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 7.062
+    },
+    {
+      "phase": "after",
+      "scenario_id": "baseline-after",
+      "mode": "offline_fixture",
+      "case_id": "B-P03",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 7.062
+    },
+    {
+      "phase": "none",
+      "scenario_id": "baseline-dynamic",
+      "mode": "offline_fixture",
+      "case_id": "B-N01",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 3.394
+    },
+    {
+      "phase": "after",
+      "scenario_id": "external-after",
+      "mode": "offline_fixture",
+      "case_id": "E-P01",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 1.942
+    },
+    {
+      "phase": "before",
+      "scenario_id": "external-before",
+      "mode": "offline_fixture",
+      "case_id": "E-N01",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 1.688
+    },
+    {
+      "phase": "none",
+      "scenario_id": "W-P01",
+      "mode": "offline_fixture",
+      "case_id": "W-P01",
+      "status": "skipped",
+      "reason": "弱配置检测由 lcx 实现，本地尚未接入该检测器"
+    },
+    {
+      "phase": "none",
+      "scenario_id": "W-P02",
+      "mode": "offline_fixture",
+      "case_id": "W-P02",
+      "status": "skipped",
+      "reason": "弱配置检测由 lcx 实现，本地尚未接入该检测器"
+    },
+    {
+      "phase": "none",
+      "scenario_id": "W-N01",
+      "mode": "offline_fixture",
+      "case_id": "W-N01",
+      "status": "skipped",
+      "reason": "弱配置检测由 lcx 实现，本地尚未接入该检测器"
+    },
+    {
+      "phase": "none",
+      "scenario_id": "W-N02",
+      "mode": "offline_fixture",
+      "case_id": "W-N02",
+      "status": "skipped",
+      "reason": "弱配置检测由 lcx 实现，本地尚未接入该检测器"
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-dynamic",
+      "mode": "offline_fixture",
+      "case_id": "S-P04",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.238
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-adjacent",
+      "mode": "offline_fixture",
+      "case_id": "S-P05",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.306
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-adjacent",
+      "mode": "offline_fixture",
+      "case_id": "S-P06",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.306
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-adjacent",
+      "mode": "offline_fixture",
+      "case_id": "S-P07",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.306
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-long",
+      "mode": "offline_fixture",
+      "case_id": "S-P08",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.246
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-json",
+      "mode": "offline_fixture",
+      "case_id": "S-P09",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.105
+    },
+    {
+      "phase": "none",
+      "scenario_id": "sensitive-empty",
+      "mode": "offline_fixture",
+      "case_id": "S-N04",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.044
+    },
+    {
+      "phase": "after",
+      "scenario_id": "baseline-whitespace",
+      "mode": "offline_fixture",
+      "case_id": "B-N02",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.988
+    },
+    {
+      "phase": "restored",
+      "scenario_id": "baseline-restored",
+      "mode": "offline_fixture",
+      "case_id": "B-N03",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 1.007
+    },
+    {
+      "phase": "after",
+      "scenario_id": "external-form",
+      "mode": "offline_fixture",
+      "case_id": "E-P02",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.308
+    },
+    {
+      "phase": "none",
+      "scenario_id": "external-approved",
+      "mode": "offline_fixture",
+      "case_id": "E-N02",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.339
+    },
+    {
+      "phase": "after",
+      "scenario_id": "external-query",
+      "mode": "offline_fixture",
+      "case_id": "E-P03",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 0.285
+    }
+  ],
+  "environment": {
+    "python": "3.11.15",
+    "platform": "Windows",
+    "packages": {
+      "beautifulsoup4": "4.15.0",
+      "PyYAML": "6.0.3"
+    }
+  },
+  "limitations": [
+    "实际调用 Python 检测器，未通过网络采集，也未接入 HTTP 服务或恒脑。",
+    "基线由可信本地 fixture 提供；未验证后端审批、调度、身份鉴权与复测状态。"
+  ],
+  "elapsed_ms": 59.718,
+  "input_sha256": {
+    "scanner\\__init__.py": "28abe6dbcde8781746015d93eae571954d9fdbb589709aedc15b6965ae78046a",
+    "scanner\\adapters\\__init__.py": "f1ac042452c3db45208ebb7a93469333547047cf88fe5d68509f3fc951e908e5",
+    "scanner\\adapters\\hengnao.py": "c3a1e56373f582ea1c422edcf8a1a28bc1737b0cc0c71e6e07217498544fb7d2",
+    "scanner\\baseline.py": "95c12dd6a929b23a5979cfd7f900e65c7b8fce311bfcbbf0d2241569e86d896a",
+    "scanner\\common\\__init__.py": "8131e0396cdea972f9e53e5fd8a468dbb19e365ed92034988d6b67ff0a1a1925",
+    "scanner\\common\\masking.py": "7ab6682acca3c707e639b02b9303f640641a0b97789d8352c421d602b586316b",
+    "scanner\\common\\models.py": "2a48557c9fe7e2dab7b4367b32bcde139d7b91829c493735257c2a29cc81eb11",
+    "scanner\\common\\text_utils.py": "c22554b113b767c03dc1a4c0021ec183c05866cbf2de13dc560936b2db109a71",
+    "scanner\\external_links.py": "d63f802c2b83140740b8941f08f67282c5b3fc162da405fea0672339f772f33d",
+    "scanner\\rules\\sensitive_rules.yaml": "7a9e43fbff4dd17d7aae5edb0c52f66b9d740d6aba47fdf3594772a818736e74",
+    "scanner\\rules.py": "b97792cb77e83d82f0c5ee83baf8b31ea182b1630034584b7003c10321390229",
+    "scanner\\sensitive.py": "86a894a75674e9a0d982a227eb89e854a7dc33748341fc73bc561f4382935fd8",
+    "test_site\\pages\\baseline_after.html": "8874d91b574bfa7c5ccbe41a5bbf7122bfd7e94244d14052f52967b4840ab641",
+    "test_site\\pages\\baseline_before.html": "a8f29d45f2a24b3ee8b5891bcf16ed0e31f2aa234c21955a0933626525a7dcb7",
+    "test_site\\pages\\dynamic.html": "3dfd78125a2b7e3b9e18468c9ddb2a0c22d3ccd1859c40466de5506a355e6f03",
+    "test_site\\pages\\external_after.html": "4ef612b049f998384b11987f3d08a4215a0eb2c0891b96b758f1ab607bef9d37",
+    "test_site\\pages\\external_before.html": "2c7f3144b4ed397a6b52d6d3293e156775d3956081720ad7a044e7086ecff9b6",
+    "test_site\\pages\\sensitive_leak.html": "dc5fc2bdf9fb012b45f82045f242f20ffd8b22a62264c3261361982cdb123151",
+    "test_site\\pages\\sensitive_placeholder.html": "abf8ab96d28df049785cf30866f8aaa4ba829702ed87bad6e2bd5cecfcf3d533",
+    "tests\\evaluate.py": "1f9bec24854b76999a2ec14acf00f6f2fe24a7e5c858044fc2136c6b83baf844",
+    "tests\\fixtures\\allowed_domains.json": "456e8fe6752566b90df7e7ea6dd253db3fda0838ad34b66f5057c6f068a52aa1",
+    "tests\\fixtures\\local_cases.json": "587161ebc21de1a4d6a2a7f98a8904edcf1ba547cf3efe9e1b89a6bf688d855f",
+    "tests\\ground_truth.json": "70967fac2f665846e2149b23476ee15e901cd878657a6692ae7c1afcb1413daf",
+    "tests\\run_local_evaluation.py": "4ddead023796f983655f6264dc477ad19b507df9b4301125ae2c76faade05d3f"
+  }
+}

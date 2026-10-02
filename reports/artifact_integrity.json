@@ -1,0 +1,11 @@
+{
+  "input_hashes_checked": 22,
+  "metrics_recomputed_match": true,
+  "known_synthetic_values_absent_from_exported_findings": true,
+  "contract_samples": 6,
+  "agent_examples": 8,
+  "hengnao_compatible_examples": 6,
+  "hengnao_compatibility_shape_checked": true,
+  "pytest_passed": 47,
+  "evaluate_cli_json_and_separate_csv_dirs": "passed"
+}

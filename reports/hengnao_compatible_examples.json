@@ -1,0 +1,112 @@
+{
+  "kind": "hengnao_mock_api_compatible_examples",
+  "generated_at": "2026-10-02T15:48:38.222382+00:00",
+  "compatibility_target": "PR #1 mock /scan response",
+  "data_is_synthetic": true,
+  "deployment_status": "adapter_implemented_but_http_endpoint_not_deployed",
+  "notes": [
+    "每个 response 只使用现有模拟 API 的 scan_id、simulated、target_url、findings 顶层字段。",
+    "离线 fixture 必须保持 simulated=true；真实采集接入后才可由后端设置 false。",
+    "verification=pending 表示规则候选仍需人工核实。"
+  ],
+  "examples": [
+    {
+      "sample_id": "CONTRACT-S-P",
+      "origin": "actual_offline_module_call",
+      "response": {
+        "scan_id": "compat-contract-s-p",
+        "simulated": true,
+        "target_url": "http://fixture.example.invalid/sensitive/positive",
+        "findings": [
+          {
+            "category": "sensitive_exposure",
+            "url": "http://fixture.example.invalid/sensitive/positive",
+            "evidence_masked": "值班电话：139****5678",
+            "verification": "pending",
+            "severity": "medium"
+          }
+        ]
+      }
+    },
+    {
+      "sample_id": "CONTRACT-S-N",
+      "origin": "actual_offline_module_call",
+      "response": {
+        "scan_id": "compat-contract-s-n",
+        "simulated": true,
+        "target_url": "http://fixture.example.invalid/sensitive/negative",
+        "findings": []
+      }
+    },
+    {
+      "sample_id": "CONTRACT-B-P",
+      "origin": "actual_offline_module_call",
+      "response": {
+        "scan_id": "compat-contract-b-p",
+        "simulated": true,
+        "target_url": "http://fixture.example.invalid/baseline/home",
+        "findings": [
+          {
+            "category": "integrity_change",
+            "url": "http://fixture.example.invalid/baseline/home",
+            "evidence_masked": "'门户' -> '维护'",
+            "verification": "pending",
+            "severity": "medium"
+          },
+          {
+            "category": "integrity_change",
+            "url": "http://fixture.example.invalid/baseline/home",
+            "evidence_masked": "归一化正文 SHA-256 与基线不同",
+            "verification": "pending",
+            "severity": "low"
+          },
+          {
+            "category": "integrity_change",
+            "url": "http://fixture.example.invalid/baseline/home",
+            "evidence_masked": "https://outside.example.invalid/app.js",
+            "verification": "pending",
+            "severity": "high"
+          }
+        ]
+      }
+    },
+    {
+      "sample_id": "CONTRACT-B-N",
+      "origin": "actual_offline_module_call",
+      "response": {
+        "scan_id": "compat-contract-b-n",
+        "simulated": true,
+        "target_url": "http://fixture.example.invalid/baseline/home",
+        "findings": []
+      }
+    },
+    {
+      "sample_id": "CONTRACT-E-P",
+      "origin": "actual_offline_module_call",
+      "response": {
+        "scan_id": "compat-contract-e-p",
+        "simulated": true,
+        "target_url": "http://fixture.example.invalid/external/page",
+        "findings": [
+          {
+            "category": "external_link_change",
+            "url": "http://fixture.example.invalid/external/page",
+            "evidence_masked": "https://new.example.invalid/send?token=***",
+            "verification": "pending",
+            "severity": "medium"
+          }
+        ]
+      }
+    },
+    {
+      "sample_id": "CONTRACT-E-N",
+      "origin": "actual_offline_module_call",
+      "response": {
+        "scan_id": "compat-contract-e-n",
+        "simulated": true,
+        "target_url": "http://fixture.example.invalid/external/page",
+        "findings": []
+      }
+    }
+  ]
+}

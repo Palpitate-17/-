@@ -1,0 +1,284 @@
+{
+  "kind": "contract_samples_not_benchmark",
+  "work_package_version": "v0.2.0",
+  "generated_at": "2026-10-02T15:48:38.222382+00:00",
+  "data_is_synthetic": true,
+  "network_requests": 0,
+  "functions": {
+    "load_rules": "(path: 'str | Path') -> 'list[dict[str, Any]]'",
+    "detect_sensitive": "(page: 'PageInput', rules: 'list[dict[str, Any]]') -> 'list[RawFinding]'",
+    "build_baseline": "(page: 'PageInput', allowed_domains: 'list[str]') -> 'BaselineRecord'",
+    "compare_baseline": "(page: 'PageInput', baseline: 'BaselineRecord', allowed_domains: 'list[str]') -> 'list[RawFinding]'",
+    "extract_external_links": "(html: 'str', page_url: 'str', allowed_domains: 'list[str]') -> 'list[str]'",
+    "compare_external_links": "(page: 'PageInput', previous_links: 'list[str]', allowed_domains: 'list[str]') -> 'list[RawFinding]'"
+  },
+  "model_fields": {
+    "PageInput": [
+      "url",
+      "final_url",
+      "status_code",
+      "content_type",
+      "body",
+      "headers",
+      "fetched_at"
+    ],
+    "RawFinding": [
+      "category",
+      "rule_id",
+      "severity",
+      "url",
+      "title",
+      "evidence",
+      "description",
+      "remediation",
+      "metadata"
+    ],
+    "BaselineRecord": [
+      "url",
+      "status_code",
+      "title",
+      "text_hash",
+      "external_links",
+      "scripts",
+      "created_at"
+    ]
+  },
+  "samples": [
+    {
+      "sample_id": "CONTRACT-S-P",
+      "module": "sensitive",
+      "input": {
+        "page": {
+          "url": "http://fixture.example.invalid/sensitive/positive",
+          "final_url": "http://fixture.example.invalid/sensitive/positive",
+          "status_code": 200,
+          "content_type": "text/html; charset=utf-8",
+          "body": "<p>值班电话：13912345678</p>",
+          "headers": {},
+          "fetched_at": "2026-09-29T00:00:00Z"
+        }
+      },
+      "expected_rule_ids": [
+        "SENSITIVE_PHONE_CN"
+      ],
+      "result": {
+        "findings": [
+          {
+            "category": "sensitive_info",
+            "rule_id": "SENSITIVE_PHONE_CN",
+            "severity": "medium",
+            "url": "http://fixture.example.invalid/sensitive/positive",
+            "title": "中国大陆手机号",
+            "evidence": "值班电话：139****5678",
+            "description": "页面疑似公开展示了完整大陆手机号",
+            "remediation": "对非必要公开的号码进行删除或脱敏，并检查页面发布流程。",
+            "metadata": {
+              "masked_value": "139****5678",
+              "source_kind": "visible_text"
+            }
+          }
+        ],
+        "finding_count": 1
+      }
+    },
+    {
+      "sample_id": "CONTRACT-S-N",
+      "module": "sensitive",
+      "input": {
+        "page": {
+          "url": "http://fixture.example.invalid/sensitive/negative",
+          "final_url": "http://fixture.example.invalid/sensitive/negative",
+          "status_code": 200,
+          "content_type": "text/html; charset=utf-8",
+          "body": "<p>占位示例 access_token=placeholder。</p>",
+          "headers": {},
+          "fetched_at": "2026-09-29T00:00:00Z"
+        }
+      },
+      "expected_rule_ids": [],
+      "result": {
+        "findings": [],
+        "finding_count": 0
+      }
+    },
+    {
+      "sample_id": "CONTRACT-B-P",
+      "module": "baseline",
+      "input": {
+        "page": {
+          "url": "http://fixture.example.invalid/baseline/home",
+          "final_url": "http://fixture.example.invalid/baseline/home",
+          "status_code": 200,
+          "content_type": "text/html; charset=utf-8",
+          "body": "<title>维护</title><p>内容变化</p><script src=\"https://outside.example.invalid/app.js\"></script>",
+          "headers": {},
+          "fetched_at": "2026-09-29T00:00:00Z"
+        },
+        "baseline": {
+          "url": "http://fixture.example.invalid/baseline/home",
+          "status_code": 200,
+          "title": "门户",
+          "text_hash": "4267f91d1eaf95a0cca9d286c20a6b6f5c52f3eeccfc95cfd38607bfe760f1e6",
+          "external_links": [],
+          "scripts": [],
+          "created_at": "2026-10-02T15:48:38.220384+00:00"
+        },
+        "allowed_domains": [
+          "fixture.example.invalid",
+          "approved.example.invalid"
+        ]
+      },
+      "expected_rule_ids": [
+        "BASELINE_TITLE_CHANGED",
+        "BASELINE_TEXT_CHANGED",
+        "BASELINE_SCRIPT_ADDED"
+      ],
+      "result": {
+        "findings": [
+          {
+            "category": "page_baseline_change",
+            "rule_id": "BASELINE_TITLE_CHANGED",
+            "severity": "medium",
+            "url": "http://fixture.example.invalid/baseline/home",
+            "title": "页面标题变化",
+            "evidence": "'门户' -> '维护'",
+            "description": "当前页面状态与已确认基线不一致。",
+            "remediation": "人工核对变化原因；合法发布则审批后更新基线，否则回滚并排查。",
+            "metadata": {}
+          },
+          {
+            "category": "page_baseline_change",
+            "rule_id": "BASELINE_TEXT_CHANGED",
+            "severity": "low",
+            "url": "http://fixture.example.invalid/baseline/home",
+            "title": "页面正文变化",
+            "evidence": "归一化正文 SHA-256 与基线不同",
+            "description": "当前页面状态与已确认基线不一致。",
+            "remediation": "人工核对变化原因；合法发布则审批后更新基线，否则回滚并排查。",
+            "metadata": {}
+          },
+          {
+            "category": "page_baseline_change",
+            "rule_id": "BASELINE_SCRIPT_ADDED",
+            "severity": "high",
+            "url": "http://fixture.example.invalid/baseline/home",
+            "title": "页面新增脚本",
+            "evidence": "https://outside.example.invalid/app.js",
+            "description": "当前页面状态与已确认基线不一致。",
+            "remediation": "人工核对变化原因；合法发布则审批后更新基线，否则回滚并排查。",
+            "metadata": {}
+          }
+        ],
+        "finding_count": 3
+      }
+    },
+    {
+      "sample_id": "CONTRACT-B-N",
+      "module": "baseline",
+      "input": {
+        "page": {
+          "url": "http://fixture.example.invalid/baseline/home",
+          "final_url": "http://fixture.example.invalid/baseline/home",
+          "status_code": 200,
+          "content_type": "text/html; charset=utf-8",
+          "body": "<title>门户</title>\n<p>服务正常</p>\n  <p>欢迎访问</p>",
+          "headers": {},
+          "fetched_at": "2026-09-29T00:00:00Z"
+        },
+        "baseline": {
+          "url": "http://fixture.example.invalid/baseline/home",
+          "status_code": 200,
+          "title": "门户",
+          "text_hash": "4267f91d1eaf95a0cca9d286c20a6b6f5c52f3eeccfc95cfd38607bfe760f1e6",
+          "external_links": [],
+          "scripts": [],
+          "created_at": "2026-10-02T15:48:38.220384+00:00"
+        },
+        "allowed_domains": [
+          "fixture.example.invalid",
+          "approved.example.invalid"
+        ]
+      },
+      "expected_rule_ids": [],
+      "result": {
+        "findings": [],
+        "finding_count": 0
+      }
+    },
+    {
+      "sample_id": "CONTRACT-E-P",
+      "module": "external_links",
+      "input": {
+        "page": {
+          "url": "http://fixture.example.invalid/external/page",
+          "final_url": "http://fixture.example.invalid/external/page",
+          "status_code": 200,
+          "content_type": "text/html; charset=utf-8",
+          "body": "<a href=\"https://old.example.invalid/help\">已有</a><form action=\"https://new.example.invalid/send?token=synthetic-demo\"></form>",
+          "headers": {},
+          "fetched_at": "2026-09-29T00:00:00Z"
+        },
+        "previous_links": [
+          "https://old.example.invalid/help"
+        ],
+        "allowed_domains": [
+          "fixture.example.invalid",
+          "approved.example.invalid"
+        ]
+      },
+      "expected_rule_ids": [
+        "EXTERNAL_LINK_ADDED"
+      ],
+      "result": {
+        "findings": [
+          {
+            "category": "external_link_change",
+            "rule_id": "EXTERNAL_LINK_ADDED",
+            "severity": "medium",
+            "url": "http://fixture.example.invalid/external/page",
+            "title": "页面新增外部链接",
+            "evidence": "https://new.example.invalid/send?token=***",
+            "description": "当前页面相对已确认基线新增了外部域名资源或链接。",
+            "remediation": "核对该域名、用途和引入时间；确认无误后再更新基线。",
+            "metadata": {
+              "added_url": "https://new.example.invalid/send?token=***"
+            }
+          }
+        ],
+        "finding_count": 1
+      }
+    },
+    {
+      "sample_id": "CONTRACT-E-N",
+      "module": "external_links",
+      "input": {
+        "page": {
+          "url": "http://fixture.example.invalid/external/page",
+          "final_url": "http://fixture.example.invalid/external/page",
+          "status_code": 200,
+          "content_type": "text/html; charset=utf-8",
+          "body": "<a href=\"https://old.example.invalid/help\">已有</a>",
+          "headers": {},
+          "fetched_at": "2026-09-29T00:00:00Z"
+        },
+        "previous_links": [
+          "https://old.example.invalid/help"
+        ],
+        "allowed_domains": [
+          "fixture.example.invalid",
+          "approved.example.invalid"
+        ]
+      },
+      "expected_rule_ids": [],
+      "result": {
+        "findings": [],
+        "finding_count": 0
+      }
+    }
+  ],
+  "limitations": [
+    "输入与内部基线包含合成原始值；不得向智能体透传生产输入。",
+    "不是 tests.evaluate 的输入结构，也不是已经上线的 HTTP 接口。",
+    "当前不覆盖源码秘密、内联脚本基线或弱配置检测器。"
+  ]
+}

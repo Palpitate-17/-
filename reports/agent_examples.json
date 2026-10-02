@@ -1,0 +1,176 @@
+{
+  "kind": "agent_presentation_examples",
+  "generated_at": "2026-10-02T15:48:38.222382+00:00",
+  "wrapper_status": "proposed_http_mapping_not_deployed",
+  "examples": [
+    {
+      "sample_id": "CONTRACT-S-P",
+      "origin": "actual_offline_module_call",
+      "result": {
+        "status": "succeeded",
+        "findings": [
+          {
+            "category": "sensitive_info",
+            "rule_id": "SENSITIVE_PHONE_CN",
+            "severity": "medium",
+            "url": "http://fixture.example.invalid/sensitive/positive",
+            "title": "中国大陆手机号",
+            "evidence": "值班电话：139****5678",
+            "description": "页面疑似公开展示了完整大陆手机号",
+            "remediation": "对非必要公开的号码进行删除或脱敏，并检查页面发布流程。",
+            "metadata": {
+              "masked_value": "139****5678",
+              "source_kind": "visible_text"
+            }
+          }
+        ],
+        "coverage": {
+          "module": "sensitive",
+          "mode": "offline_fixture"
+        }
+      },
+      "explanation": "本次可见文本命中手机号候选，已遮蔽。需结合公开性策略确认是否违规。",
+      "forbidden_claim": "已确认泄露真实个人信息"
+    },
+    {
+      "sample_id": "CONTRACT-S-N",
+      "origin": "actual_offline_module_call",
+      "result": {
+        "status": "succeeded",
+        "findings": [],
+        "coverage": {
+          "module": "sensitive",
+          "mode": "offline_fixture"
+        }
+      },
+      "explanation": "当前规则将明示占位字段排除；本次可见文本规则未发现候选。",
+      "forbidden_claim": "该网站不存在任何敏感信息"
+    },
+    {
+      "sample_id": "CONTRACT-B-P",
+      "origin": "actual_offline_module_call",
+      "result": {
+        "status": "succeeded",
+        "findings": [
+          {
+            "category": "page_baseline_change",
+            "rule_id": "BASELINE_TITLE_CHANGED",
+            "severity": "medium",
+            "url": "http://fixture.example.invalid/baseline/home",
+            "title": "页面标题变化",
+            "evidence": "'门户' -> '维护'",
+            "description": "当前页面状态与已确认基线不一致。",
+            "remediation": "人工核对变化原因；合法发布则审批后更新基线，否则回滚并排查。",
+            "metadata": {}
+          },
+          {
+            "category": "page_baseline_change",
+            "rule_id": "BASELINE_TEXT_CHANGED",
+            "severity": "low",
+            "url": "http://fixture.example.invalid/baseline/home",
+            "title": "页面正文变化",
+            "evidence": "归一化正文 SHA-256 与基线不同",
+            "description": "当前页面状态与已确认基线不一致。",
+            "remediation": "人工核对变化原因；合法发布则审批后更新基线，否则回滚并排查。",
+            "metadata": {}
+          },
+          {
+            "category": "page_baseline_change",
+            "rule_id": "BASELINE_SCRIPT_ADDED",
+            "severity": "high",
+            "url": "http://fixture.example.invalid/baseline/home",
+            "title": "页面新增脚本",
+            "evidence": "https://outside.example.invalid/app.js",
+            "description": "当前页面状态与已确认基线不一致。",
+            "remediation": "人工核对变化原因；合法发布则审批后更新基线，否则回滚并排查。",
+            "metadata": {}
+          }
+        ],
+        "coverage": {
+          "module": "baseline",
+          "mode": "offline_fixture"
+        }
+      },
+      "explanation": "标题、正文和新增脚本与本地批准基线不同，请核对发布记录。",
+      "forbidden_claim": "网站已被攻击或篡改"
+    },
+    {
+      "sample_id": "CONTRACT-B-N",
+      "origin": "actual_offline_module_call",
+      "result": {
+        "status": "succeeded",
+        "findings": [],
+        "coverage": {
+          "module": "baseline",
+          "mode": "offline_fixture"
+        }
+      },
+      "explanation": "只改变空白换行，当前归一化比较未发现差异。",
+      "forbidden_claim": "所有脚本及资源内容都已校验安全"
+    },
+    {
+      "sample_id": "CONTRACT-E-P",
+      "origin": "actual_offline_module_call",
+      "result": {
+        "status": "succeeded",
+        "findings": [
+          {
+            "category": "external_link_change",
+            "rule_id": "EXTERNAL_LINK_ADDED",
+            "severity": "medium",
+            "url": "http://fixture.example.invalid/external/page",
+            "title": "页面新增外部链接",
+            "evidence": "https://new.example.invalid/send?token=***",
+            "description": "当前页面相对已确认基线新增了外部域名资源或链接。",
+            "remediation": "核对该域名、用途和引入时间；确认无误后再更新基线。",
+            "metadata": {
+              "added_url": "https://new.example.invalid/send?token=***"
+            }
+          }
+        ],
+        "coverage": {
+          "module": "external_links",
+          "mode": "offline_fixture"
+        }
+      },
+      "explanation": "相对基线出现新的表单外部目的地，查询值已遮蔽；请核对业务用途。",
+      "forbidden_claim": "已发现恶意外链"
+    },
+    {
+      "sample_id": "CONTRACT-E-N",
+      "origin": "actual_offline_module_call",
+      "result": {
+        "status": "succeeded",
+        "findings": [],
+        "coverage": {
+          "module": "external_links",
+          "mode": "offline_fixture"
+        }
+      },
+      "explanation": "相对提供的基线，当前页面未发现新增外部引用。",
+      "forbidden_claim": "所有外部域名都经过恶意信誉认证"
+    },
+    {
+      "sample_id": "WORKFLOW-FAILED",
+      "origin": "actual_deliberate_fixture_failure",
+      "result": {
+        "status": "failed",
+        "findings": [],
+        "reason": "FileNotFoundError: 输入构建或检测失败"
+      },
+      "explanation": "本次输入构建失败，未完成检查，不能判定是否安全。",
+      "forbidden_claim": "空结果证明安全或已修复"
+    },
+    {
+      "sample_id": "WORKFLOW-SKIPPED",
+      "origin": "actual_evaluation_case_run",
+      "result": {
+        "status": "skipped",
+        "findings": [],
+        "reason": "弱配置检测由 lcx 实现，本地尚未接入该检测器"
+      },
+      "explanation": "弱配置检测器尚未接入，该项未执行。",
+      "forbidden_claim": "安全响应头和 Cookie 检查已通过"
+    }
+  ]
+}

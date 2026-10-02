@@ -1,0 +1,78 @@
+{
+  "checked_on": "2026-10-02",
+  "work_package_version": "v0.2.1",
+  "environment": {
+    "python": "3.11.15",
+    "platform": "Windows",
+    "packages": {
+      "beautifulsoup4": "4.15.0",
+      "fastapi": "0.141.1",
+      "starlette": "1.7.0",
+      "httpx": "0.28.1",
+      "PyYAML": "6.0.3",
+      "pytest": "9.1.1",
+      "uvicorn": "0.54.0"
+    }
+  },
+  "python_3_12_verified": false,
+  "initial_regressions": {
+    "command": "python -X utf8 -B -m pytest tests/test_regressions.py -q",
+    "failed": 7,
+    "passed": 1
+  },
+  "final_pytest": {
+    "command": "python -X utf8 -B -m pytest -q",
+    "exit_code": 0,
+    "passed": 47,
+    "failed": 0,
+    "warnings": [
+      "Starlette TestClient 弃用 httpx 适配，当前执行通过，未为消除提示更改依赖。"
+    ],
+    "captured_output": "reports/pytest_results.txt"
+  },
+  "local_evaluation": {
+    "command": "python -X utf8 -B -m tests.run_local_evaluation",
+    "exit_code": 0,
+    "summary": {
+      "tp": 15,
+      "fp": 0,
+      "fn": 0,
+      "precision": 1,
+      "recall": 1,
+      "f1": 1,
+      "fdr": 0
+    },
+    "coverage": {
+      "verified": true,
+      "total": 28,
+      "succeeded": 24,
+      "failed": 0,
+      "skipped": 4,
+      "unrecorded": 0,
+      "ratio": 0.8571
+    },
+    "case_metrics": {
+      "executed_positive_cases": 15,
+      "executed_negative_cases": 9,
+      "tn": 9,
+      "negative_cases_with_fp": 0,
+      "negative_case_fpr": 0,
+      "unassigned_findings": 0
+    }
+  },
+  "handoff_generation": {
+    "command": "python -X utf8 -B -m tests.build_handoff_samples",
+    "contract_samples": 6,
+    "agent_examples": 8,
+    "hengnao_compatible_examples": 6
+  },
+  "not_verified": [
+    "Python 3.12",
+    "HTTP/OpenAPI 服务（仅兼容响应对象已实现）",
+    "恒脑注册/工作流联调",
+    "生产页面数据与性能",
+    "队友独立标注复核",
+    "源码秘密与内联脚本基线",
+    "弱配置检测器"
+  ]
+}

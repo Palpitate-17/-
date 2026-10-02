@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "mode": "offline_fixture",
+  "note": "全部为合成数据；case 按 scenario 实际执行，未知告警保留，弱配置显式跳过",
+  "scenarios": [
+    {
+      "id": "sensitive-leak",
+      "case_ids": [
+        "S-P01",
+        "S-P02",
+        "S-P03"
+      ],
+      "module": "sensitive",
+      "page": {
+        "file": "test_site/pages/sensitive_leak.html"
+      }
+    },
+    {
+      "id": "sensitive-placeholder",
+      "case_ids": [
+        "S-N01",
+        "S-N02",
+        "S-N03"
+      ],
+      "module": "sensitive",
+      "page": {
+        "file": "test_site/pages/sensitive_placeholder.html"
+      }
+    },
+    {
+      "id": "baseline-after",
+      "case_ids": [
+        "B-P01",
+        "B-P02",
+        "B-P03"
+      ],
+      "module": "baseline",
+      "page": {
+        "file": "test_site/pages/baseline_after.html"
+      },
+      "baseline": {
+        "file": "test_site/pages/baseline_before.html"
+      }
+    },
+    {
+      "id": "baseline-dynamic",
+      "case_ids": [
+        "B-N01"
+      ],
+      "module": "baseline",
+      "page": {
+        "file": "test_site/pages/dynamic.html",
+        "now": "2026-09-29T00:01:00Z"
+      },
+      "baseline": {
+        "file": "test_site/pages/dynamic.html",
+        "now": "2026-09-29T00:00:00Z"
+      }
+    },
+    {
+      "id": "external-after",
+      "case_ids": [
+        "E-P01"
+      ],
+      "module": "external_links",
+      "page": {
+        "file": "test_site/pages/external_after.html"
+      },
+      "baseline": {
+        "file": "test_site/pages/external_before.html"
+      }
+    },
+    {
+      "id": "external-before",
+      "case_ids": [
+        "E-N01"
+      ],
+      "module": "external_links",
+      "page": {
+        "file": "test_site/pages/external_before.html"
+      },
+      "baseline": {
+        "file": "test_site/pages/external_before.html"
+      }
+    },
+    {
+      "id": "W-P01",
+      "case_ids": [
+        "W-P01"
+      ],
+      "skip_reason": "弱配置检测由 lcx 实现，本地尚未接入该检测器"
+    },
+    {
+      "id": "W-P02",
+      "case_ids": [
+        "W-P02"
+      ],
+      "skip_reason": "弱配置检测由 lcx 实现，本地尚未接入该检测器"
+    },
+    {
+      "id": "W-N01",
+      "case_ids": [
+        "W-N01"
+      ],
+      "skip_reason": "弱配置检测由 lcx 实现，本地尚未接入该检测器"
+    },
+    {
+      "id": "W-N02",
+      "case_ids": [
+        "W-N02"
+      ],
+      "skip_reason": "弱配置检测由 lcx 实现，本地尚未接入该检测器"
+    },
+    {
+      "id": "sensitive-dynamic",
+      "case_ids": [
+        "S-P04"
+      ],
+      "module": "sensitive",
+      "page": {
+        "body": "<p data-ignore=\"dynamic\">值班电话：13912345678</p>"
+      }
+    },
+    {
+      "id": "sensitive-adjacent",
+      "case_ids": [
+        "S-P05",
+        "S-P06",
+        "S-P07"
+      ],
+      "module": "sensitive",
+      "page": {
+        "body": "<p>电话：13912345678 邮箱：alice@corp.invalid api_secret=synthetic-secret-123456</p>"
+      }
+    },
+    {
+      "id": "sensitive-long",
+      "case_ids": [
+        "S-P08"
+      ],
+      "module": "sensitive",
+      "page": {
+        "body": "<p>api_secret=synthetic-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx; 联系：13800138000</p>"
+      }
+    },
+    {
+      "id": "sensitive-json",
+      "case_ids": [
+        "S-P09"
+      ],
+      "module": "sensitive",
+      "page": {
+        "body": "{\"api_secret\": \"synthetic-json-secret\"}",
+        "content_type": "application/json"
+      }
+    },
+    {
+      "id": "sensitive-empty",
+      "case_ids": [
+        "S-N04"
+      ],
+      "module": "sensitive",
+      "page": {
+        "body": "{\"api_secret\": \"\"}",
+        "content_type": "application/json"
+      }
+    },
+    {
+      "id": "baseline-whitespace",
+      "case_ids": [
+        "B-N02"
+      ],
+      "module": "baseline",
+      "page": {
+        "body": "<title>主页</title><p>固定\n   正文</p>"
+      },
+      "baseline": {
+        "body": "<title>主页</title><p>固定 正文</p>"
+      }
+    },
+    {
+      "id": "baseline-restored",
+      "case_ids": [
+        "B-N03"
+      ],
+      "module": "baseline",
+      "page": {
+        "body": "<title>主页</title><p>固定 正文</p>"
+      },
+      "baseline": {
+        "body": "<title>主页</title><p>固定 正文</p>"
+      }
+    },
+    {
+      "id": "external-form",
+      "case_ids": [
+        "E-P02"
+      ],
+      "module": "external_links",
+      "page": {
+        "body": "<form action=\"https://outside.example.invalid/send?token=synthetic-token&amp;x=synthetic-value\"></form>"
+      },
+      "baseline": {
+        "body": "<p>正常正文</p>"
+      }
+    },
+    {
+      "id": "external-approved",
+      "case_ids": [
+        "E-N02"
+      ],
+      "module": "external_links",
+      "page": {
+        "body": "<script src=\"http://cdn.localhost/static.js\"></script><a href=\"/inside\">站内</a>"
+      },
+      "baseline": {
+        "body": "<script src=\"http://cdn.localhost/static.js\"></script><a href=\"/inside\">站内</a>"
+      }
+    },
+    {
+      "id": "external-query",
+      "case_ids": [
+        "E-P03"
+      ],
+      "module": "external_links",
+      "page": {
+        "body": "<a href=\"https://outside.example.invalid/page?access_token=synthetic-token\">新增入口</a>"
+      },
+      "baseline": {
+        "body": "<p>正常正文</p>"
+      }
+    }
+  ]
+}

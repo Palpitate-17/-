@@ -1,0 +1,5 @@
+﻿category,tp,fp,fn,precision,recall,f1,fdr,total_cases,executed_cases
+external_link_change,3,0,0,1.0,1.0,1.0,0.0,5,5
+page_baseline_change,3,0,0,1.0,1.0,1.0,0.0,6,6
+sensitive_info,9,0,0,1.0,1.0,1.0,0.0,13,13
+weak_configuration,0,0,0,,,,,4,0

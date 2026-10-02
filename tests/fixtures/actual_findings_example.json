@@ -1,0 +1,7 @@
+{
+  "findings": [
+    {"category": "sensitive_info", "rule_id": "SENSITIVE_PHONE_CN", "url": "http://127.0.0.1:8001/sensitive/leak"},
+    {"category": "sensitive_info", "rule_id": "SENSITIVE_EMAIL", "url": "http://127.0.0.1:8001/sensitive/leak"},
+    {"category": "sensitive_info", "rule_id": "SENSITIVE_SECRET_KEYWORD", "url": "http://127.0.0.1:8001/sensitive/leak"}
+  ]
+}

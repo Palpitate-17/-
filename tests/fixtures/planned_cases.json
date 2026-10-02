@@ -1,0 +1,45 @@
+{
+  "schema_version": "draft",
+  "status": "prepared_not_implemented",
+  "not_in_active_evaluation": true,
+  "cases": [
+    {
+      "case_id": "S-DRAFT-SOURCE-P01",
+      "category": "sensitive_info",
+      "rule_id": "SOURCE_SECRET_CANDIDATE",
+      "positive": true,
+      "expected_count": 1,
+      "input": {
+        "content_type": "text/html",
+        "body": "<script>const access_token=\"synthetic-inline-secret\";</script><p>普通正文</p>"
+      },
+      "reason": "需要独立源码规则与通道；当前 visible_text 检测不覆盖内联 script"
+    },
+    {
+      "case_id": "S-DRAFT-SOURCE-N01",
+      "category": "sensitive_info",
+      "rule_id": "SOURCE_SECRET_CANDIDATE",
+      "positive": false,
+      "expected_count": 0,
+      "input": {
+        "content_type": "application/javascript",
+        "body": "const publicLabel=\"普通业务介绍\";"
+      },
+      "reason": "拟新增源码通道的反例，JS 类型当前未接入"
+    },
+    {
+      "case_id": "B-DRAFT-INLINE-P01",
+      "category": "page_baseline_change",
+      "rule_id": "BASELINE_INLINE_SCRIPT_CHANGED",
+      "positive": true,
+      "expected_count": 1,
+      "baseline": {
+        "body": "<script>window.demo=\"before\";</script><p>固定正文</p>"
+      },
+      "input": {
+        "body": "<script>window.demo=\"after\";</script><p>固定正文</p>"
+      },
+      "reason": "需为内联脚本摘要扩展 BaselineRecord，与 lcx 确认后实施"
+    }
+  ]
+}

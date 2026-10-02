@@ -1,7 +1,7 @@
 {
   "kind": "agent_presentation_examples",
-  "generated_at": "2026-10-02T15:48:38.222382+00:00",
-  "wrapper_status": "proposed_http_mapping_not_deployed",
+  "generated_at": "2026-10-02T20:42:34.609592+00:00",
+  "wrapper_status": "legacy_offline_examples_use_openapi_for_live_api",
   "examples": [
     {
       "sample_id": "CONTRACT-S-P",
@@ -76,6 +76,17 @@
           },
           {
             "category": "page_baseline_change",
+            "rule_id": "BASELINE_DOM_CHANGED",
+            "severity": "medium",
+            "url": "http://fixture.example.invalid/baseline/home",
+            "title": "页面 DOM 结构变化",
+            "evidence": "页面标签结构或关键属性与基线不同",
+            "description": "当前页面状态与已确认基线不一致。",
+            "remediation": "人工核对变化原因；合法发布则审批后更新基线，否则回滚并排查。",
+            "metadata": {}
+          },
+          {
+            "category": "page_baseline_change",
             "rule_id": "BASELINE_SCRIPT_ADDED",
             "severity": "high",
             "url": "http://fixture.example.invalid/baseline/home",
@@ -124,7 +135,9 @@
             "description": "当前页面相对已确认基线新增了外部域名资源或链接。",
             "remediation": "核对该域名、用途和引入时间；确认无误后再更新基线。",
             "metadata": {
-              "added_url": "https://new.example.invalid/send?token=***"
+              "added_url": "https://new.example.invalid/send?token=***",
+              "source_tag": "form",
+              "attribute": "action"
             }
           }
         ],

@@ -1,16 +1,16 @@
 {
   "kind": "contract_samples_not_benchmark",
-  "work_package_version": "v0.2.0",
-  "generated_at": "2026-10-02T15:48:38.222382+00:00",
+  "work_package_version": "v0.3.0",
+  "generated_at": "2026-10-02T20:42:34.609592+00:00",
   "data_is_synthetic": true,
   "network_requests": 0,
   "functions": {
     "load_rules": "(path: 'str | Path') -> 'list[dict[str, Any]]'",
-    "detect_sensitive": "(page: 'PageInput', rules: 'list[dict[str, Any]]') -> 'list[RawFinding]'",
-    "build_baseline": "(page: 'PageInput', allowed_domains: 'list[str]') -> 'BaselineRecord'",
-    "compare_baseline": "(page: 'PageInput', baseline: 'BaselineRecord', allowed_domains: 'list[str]') -> 'list[RawFinding]'",
+    "detect_sensitive": "(page: 'PageInput', rules: 'list[dict[str, Any]]', *, source_kinds: 'set[str] | None' = None) -> 'list[RawFinding]'",
+    "build_baseline": "(page: 'PageInput', allowed_domains: 'list[str]', *, ignore_selectors: 'list[str] | None' = None) -> 'BaselineRecord'",
+    "compare_baseline": "(page: 'PageInput', baseline: 'BaselineRecord', allowed_domains: 'list[str]', *, ignore_selectors: 'list[str] | None' = None) -> 'list[RawFinding]'",
     "extract_external_links": "(html: 'str', page_url: 'str', allowed_domains: 'list[str]') -> 'list[str]'",
-    "compare_external_links": "(page: 'PageInput', previous_links: 'list[str]', allowed_domains: 'list[str]') -> 'list[RawFinding]'"
+    "compare_external_links": "(page: 'PageInput', previous_links: 'list[str]', allowed_domains: 'list[str]', *, blacklist_domains: 'list[str] | None' = None) -> 'list[RawFinding]'"
   },
   "model_fields": {
     "PageInput": [
@@ -40,7 +40,13 @@
       "text_hash",
       "external_links",
       "scripts",
-      "created_at"
+      "created_at",
+      "dom_hash",
+      "inline_script_hashes",
+      "forms",
+      "iframes",
+      "meta_refresh",
+      "ignore_selectors"
     ]
   },
   "samples": [
@@ -121,7 +127,15 @@
           "text_hash": "4267f91d1eaf95a0cca9d286c20a6b6f5c52f3eeccfc95cfd38607bfe760f1e6",
           "external_links": [],
           "scripts": [],
-          "created_at": "2026-10-02T15:48:38.220384+00:00"
+          "created_at": "2026-10-02T20:42:34.604063+00:00",
+          "dom_hash": "a255b64551760f0e7410fe011e56b336dca3f49d3d03af1d176623e785588582",
+          "inline_script_hashes": [],
+          "forms": [],
+          "iframes": [],
+          "meta_refresh": [],
+          "ignore_selectors": [
+            "[data-ignore=\"dynamic\"]"
+          ]
         },
         "allowed_domains": [
           "fixture.example.invalid",
@@ -131,6 +145,7 @@
       "expected_rule_ids": [
         "BASELINE_TITLE_CHANGED",
         "BASELINE_TEXT_CHANGED",
+        "BASELINE_DOM_CHANGED",
         "BASELINE_SCRIPT_ADDED"
       ],
       "result": {
@@ -159,6 +174,17 @@
           },
           {
             "category": "page_baseline_change",
+            "rule_id": "BASELINE_DOM_CHANGED",
+            "severity": "medium",
+            "url": "http://fixture.example.invalid/baseline/home",
+            "title": "页面 DOM 结构变化",
+            "evidence": "页面标签结构或关键属性与基线不同",
+            "description": "当前页面状态与已确认基线不一致。",
+            "remediation": "人工核对变化原因；合法发布则审批后更新基线，否则回滚并排查。",
+            "metadata": {}
+          },
+          {
+            "category": "page_baseline_change",
             "rule_id": "BASELINE_SCRIPT_ADDED",
             "severity": "high",
             "url": "http://fixture.example.invalid/baseline/home",
@@ -169,7 +195,7 @@
             "metadata": {}
           }
         ],
-        "finding_count": 3
+        "finding_count": 4
       }
     },
     {
@@ -192,7 +218,15 @@
           "text_hash": "4267f91d1eaf95a0cca9d286c20a6b6f5c52f3eeccfc95cfd38607bfe760f1e6",
           "external_links": [],
           "scripts": [],
-          "created_at": "2026-10-02T15:48:38.220384+00:00"
+          "created_at": "2026-10-02T20:42:34.604063+00:00",
+          "dom_hash": "a255b64551760f0e7410fe011e56b336dca3f49d3d03af1d176623e785588582",
+          "inline_script_hashes": [],
+          "forms": [],
+          "iframes": [],
+          "meta_refresh": [],
+          "ignore_selectors": [
+            "[data-ignore=\"dynamic\"]"
+          ]
         },
         "allowed_domains": [
           "fixture.example.invalid",
@@ -241,7 +275,9 @@
             "description": "当前页面相对已确认基线新增了外部域名资源或链接。",
             "remediation": "核对该域名、用途和引入时间；确认无误后再更新基线。",
             "metadata": {
-              "added_url": "https://new.example.invalid/send?token=***"
+              "added_url": "https://new.example.invalid/send?token=***",
+              "source_tag": "form",
+              "attribute": "action"
             }
           }
         ],
@@ -278,7 +314,7 @@
   ],
   "limitations": [
     "输入与内部基线包含合成原始值；不得向智能体透传生产输入。",
-    "不是 tests.evaluate 的输入结构，也不是已经上线的 HTTP 接口。",
-    "当前不覆盖源码秘密、内联脚本基线或弱配置检测器。"
+    "不是 tests.evaluate 的输入结构；真实 HTTP 契约以 docs/openapi.json 为准。",
+    "弱配置和常见漏洞检测器仍未接入。"
   ]
 }

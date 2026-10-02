@@ -1,0 +1,35 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      HENGXUN_API_KEY: ${HENGXUN_API_KEY:?请先在 .env 中设置 HENGXUN_API_KEY}
+      HENGXUN_ALLOW_LAB_MODE: ${HENGXUN_ALLOW_LAB_MODE:-false}
+      HENGXUN_DATABASE_PATH: /app/.runtime/hengxun.db
+    ports:
+      - "8000:8000"
+    volumes:
+      - hengxun_data:/app/.runtime
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  lab:
+    build:
+      context: .
+      dockerfile: test_site/Dockerfile
+    ports:
+      - "127.0.0.1:8001:8001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=3)"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  hengxun_data:

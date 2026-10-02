@@ -1,4 +1,4 @@
-from scanner.external_links import compare_external_links, extract_external_links
+from scanner.external_links import compare_external_links, detect_external_link_risks, extract_external_links
 
 
 def test_extracts_only_external_links(page_factory):
@@ -21,3 +21,15 @@ def test_reports_only_new_external_links(page_factory):
     assert [item.metadata["added_url"] for item in findings] == [
         "https://new.example.invalid/app.js"
     ]
+
+
+def test_classifies_blocklist_and_punycode_without_visiting_external_site(page_factory):
+    page = page_factory(
+        '<script src="https://bad.example.invalid/a.js"></script>'
+        '<a href="https://xn--paypa-4ve.example/path">仿冒</a>'
+    )
+    findings = detect_external_link_risks(page, ["test.local"], ["bad.example.invalid"])
+    assert len(findings) == 2
+    reasons = {reason for item in findings for reason in item.metadata["risk_reasons"]}
+    assert {"local_blocklist", "punycode_hostname"} <= reasons
+    assert {item.metadata["source_tag"] for item in findings} == {"script", "a"}

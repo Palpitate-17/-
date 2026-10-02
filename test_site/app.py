@@ -4,8 +4,8 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import FastAPI, Response
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, HTTPException, Response
+from fastapi.responses import HTMLResponse, RedirectResponse
 
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -21,6 +21,15 @@ def read_page(name: str) -> str:
 
 def current_phase() -> str:
     return json.loads(STATE_FILE.read_text(encoding="utf-8")).get("phase", "before")
+
+
+def set_phase(phase: str) -> None:
+    if phase not in {"before", "after"}:
+        raise ValueError("phase 必须是 before 或 after")
+    STATE_FILE.write_text(
+        json.dumps({"phase": phase}, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
 
 
 @app.get("/health")
@@ -57,6 +66,31 @@ def external_page() -> str:
 def dynamic_page() -> str:
     now = datetime.now(timezone.utc).isoformat()
     return read_page("dynamic.html").replace("{{NOW}}", now)
+
+
+@app.get("/assets/app.js")
+def demo_javascript() -> Response:
+    return Response(read_page("app.js"), media_type="application/javascript")
+
+
+@app.get("/data/config.json")
+def demo_json() -> dict[str, str]:
+    return {"environment": "demo", "access_token": "synthetic-json-token-987654"}
+
+
+@app.post("/__test__/phase/{phase}")
+def switch_phase(phase: str) -> dict[str, str]:
+    """仅供本地授权靶场演示状态切换，不应部署为生产目标站点。"""
+    try:
+        set_phase(phase)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return {"phase": current_phase()}
+
+
+@app.get("/redirect-external")
+def redirect_external() -> RedirectResponse:
+    return RedirectResponse("https://outside.example.invalid/should-not-be-requested", status_code=302)
 
 
 @app.get("/weak/missing-headers", response_class=HTMLResponse)

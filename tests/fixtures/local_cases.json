@@ -32,7 +32,8 @@
       "case_ids": [
         "B-P01",
         "B-P02",
-        "B-P03"
+        "B-P03",
+        "B-P04"
       ],
       "module": "baseline",
       "page": {

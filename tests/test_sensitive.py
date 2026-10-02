@@ -18,6 +18,16 @@ def test_placeholder_values_are_excluded(page_factory, rules):
     assert detect_sensitive(page, rules) == []
 
 
-def test_ignores_script_content(page_factory, rules):
-    page = page_factory("<html><script>const x='13912345678'</script><body>普通正文</body></html>")
-    assert detect_sensitive(page, rules) == []
+def test_detects_inline_script_content(page_factory, rules):
+    page = page_factory("<html><script>const password='synthetic-js-secret'</script><body>普通正文</body></html>")
+    findings = detect_sensitive(page, rules)
+    assert [item.metadata["source_kind"] for item in findings] == ["inline_script"]
+    assert "synthetic-js-secret" not in findings[0].evidence
+
+
+def test_detects_html_comment_and_javascript_response(page_factory, rules):
+    comment = page_factory("<html><!-- access_token=synthetic-comment-token --><body>普通正文</body></html>")
+    assert [item.metadata["source_kind"] for item in detect_sensitive(comment, rules)] == ["html_comment"]
+    script = page_factory("const api_secret = 'synthetic-file-secret';")
+    script.content_type = "application/javascript"
+    assert [item.metadata["source_kind"] for item in detect_sensitive(script, rules)] == ["javascript"]

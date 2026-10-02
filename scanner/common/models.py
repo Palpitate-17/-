@@ -44,6 +44,12 @@ class BaselineRecord:
     external_links: list[str]
     scripts: list[str]
     created_at: str
+    dom_hash: str = ""
+    inline_script_hashes: list[str] = field(default_factory=list)
+    forms: list[str] = field(default_factory=list)
+    iframes: list[str] = field(default_factory=list)
+    meta_refresh: list[str] = field(default_factory=list)
+    ignore_selectors: list[str] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

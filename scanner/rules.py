@@ -16,15 +16,8 @@ class RuleConfigError(ValueError):
     pass
 
 
-def load_rules(path: str | Path) -> list[dict[str, Any]]:
-    rule_path = Path(path)
-    try:
-        raw = yaml.safe_load(rule_path.read_text(encoding="utf-8"))
-    except yaml.YAMLError as exc:
-        raise RuleConfigError("YAML 格式错误") from exc
-    if not isinstance(raw, dict):
-        raise RuleConfigError("规则文件根节点必须是对象")
-    rules = raw.get("rules", [])
+def validate_rules(rules: Any) -> list[dict[str, Any]]:
+    """校验文件或 API 提供的规则，并返回独立副本。"""
     if not isinstance(rules, list):
         raise RuleConfigError("rules 必须是列表")
 
@@ -74,3 +67,14 @@ def load_rules(path: str | Path) -> list[dict[str, Any]]:
             raise RuleConfigError(f"{rule_id}: mask 不合法")
         validated.append(rule)
     return validated
+
+
+def load_rules(path: str | Path) -> list[dict[str, Any]]:
+    rule_path = Path(path)
+    try:
+        raw = yaml.safe_load(rule_path.read_text(encoding="utf-8"))
+    except yaml.YAMLError as exc:
+        raise RuleConfigError("YAML 格式错误") from exc
+    if not isinstance(raw, dict):
+        raise RuleConfigError("规则文件根节点必须是对象")
+    return validate_rules(raw.get("rules", []))

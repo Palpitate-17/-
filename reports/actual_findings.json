@@ -1,6 +1,6 @@
 {
   "schema_version": 2,
-  "generated_at": "2026-10-02T15:48:37.811413+00:00",
+  "generated_at": "2026-10-02T20:42:33.890464+00:00",
   "mode": "offline_fixture",
   "findings": [
     {
@@ -52,6 +52,38 @@
       "phase": "none"
     },
     {
+      "category": "sensitive_info",
+      "rule_id": "SENSITIVE_SECRET_KEYWORD",
+      "severity": "high",
+      "url": "http://127.0.0.1:8001/sensitive/leak",
+      "title": "明文密钥关键词",
+      "evidence": "access_token=***",
+      "description": "页面中出现疑似密钥或口令字段",
+      "remediation": "立即撤下并轮换相关凭据，改由安全的服务端密钥管理方案保存。",
+      "metadata": {
+        "masked_value": "access_token=***",
+        "source_kind": "html_comment"
+      },
+      "case_id": "S-P03",
+      "phase": "none"
+    },
+    {
+      "category": "sensitive_info",
+      "rule_id": "SENSITIVE_SECRET_KEYWORD",
+      "severity": "high",
+      "url": "http://127.0.0.1:8001/sensitive/leak",
+      "title": "明文密钥关键词",
+      "evidence": "const password = ***;",
+      "description": "页面中出现疑似密钥或口令字段",
+      "remediation": "立即撤下并轮换相关凭据，改由安全的服务端密钥管理方案保存。",
+      "metadata": {
+        "masked_value": "password = ***",
+        "source_kind": "inline_script"
+      },
+      "case_id": "S-P03",
+      "phase": "none"
+    },
+    {
       "category": "page_baseline_change",
       "rule_id": "BASELINE_TITLE_CHANGED",
       "severity": "medium",
@@ -79,6 +111,19 @@
     },
     {
       "category": "page_baseline_change",
+      "rule_id": "BASELINE_DOM_CHANGED",
+      "severity": "medium",
+      "url": "http://127.0.0.1:8001/baseline/home",
+      "title": "页面 DOM 结构变化",
+      "evidence": "页面标签结构或关键属性与基线不同",
+      "description": "当前页面状态与已确认基线不一致。",
+      "remediation": "人工核对变化原因；合法发布则审批后更新基线，否则回滚并排查。",
+      "metadata": {},
+      "case_id": "B-P04",
+      "phase": "after"
+    },
+    {
+      "category": "page_baseline_change",
       "rule_id": "BASELINE_SCRIPT_ADDED",
       "severity": "high",
       "url": "http://127.0.0.1:8001/baseline/home",
@@ -96,11 +141,30 @@
       "severity": "medium",
       "url": "http://127.0.0.1:8001/external/page",
       "title": "页面新增外部链接",
+      "evidence": "https://malicious.example.invalid/tracker.js",
+      "description": "当前页面相对已确认基线新增了外部域名资源或链接。",
+      "remediation": "核对该域名、用途和引入时间；确认无误后再更新基线。",
+      "metadata": {
+        "added_url": "https://malicious.example.invalid/tracker.js",
+        "source_tag": "script",
+        "attribute": "src"
+      },
+      "case_id": "E-P01",
+      "phase": "after"
+    },
+    {
+      "category": "external_link_change",
+      "rule_id": "EXTERNAL_LINK_ADDED",
+      "severity": "medium",
+      "url": "http://127.0.0.1:8001/external/page",
+      "title": "页面新增外部链接",
       "evidence": "https://partner.example.invalid/campaign?source=***",
       "description": "当前页面相对已确认基线新增了外部域名资源或链接。",
       "remediation": "核对该域名、用途和引入时间；确认无误后再更新基线。",
       "metadata": {
-        "added_url": "https://partner.example.invalid/campaign?source=***"
+        "added_url": "https://partner.example.invalid/campaign?source=***",
+        "source_tag": "a",
+        "attribute": "href"
       },
       "case_id": "E-P01",
       "phase": "after"
@@ -211,7 +275,9 @@
       "description": "当前页面相对已确认基线新增了外部域名资源或链接。",
       "remediation": "核对该域名、用途和引入时间；确认无误后再更新基线。",
       "metadata": {
-        "added_url": "https://outside.example.invalid/send?token=***&x=***"
+        "added_url": "https://outside.example.invalid/send?token=***&x=***",
+        "source_tag": "form",
+        "attribute": "action"
       },
       "case_id": "E-P02",
       "phase": "after"
@@ -226,7 +292,9 @@
       "description": "当前页面相对已确认基线新增了外部域名资源或链接。",
       "remediation": "核对该域名、用途和引入时间；确认无误后再更新基线。",
       "metadata": {
-        "added_url": "https://outside.example.invalid/page?access_token=***"
+        "added_url": "https://outside.example.invalid/page?access_token=***",
+        "source_tag": "a",
+        "attribute": "href"
       },
       "case_id": "E-P03",
       "phase": "after"
@@ -239,7 +307,7 @@
       "mode": "offline_fixture",
       "case_id": "S-P01",
       "status": "succeeded",
-      "scenario_elapsed_ms": 2.62
+      "scenario_elapsed_ms": 6.552
     },
     {
       "phase": "none",
@@ -247,7 +315,7 @@
       "mode": "offline_fixture",
       "case_id": "S-P02",
       "status": "succeeded",
-      "scenario_elapsed_ms": 2.62
+      "scenario_elapsed_ms": 6.552
     },
     {
       "phase": "none",
@@ -255,7 +323,7 @@
       "mode": "offline_fixture",
       "case_id": "S-P03",
       "status": "succeeded",
-      "scenario_elapsed_ms": 2.62
+      "scenario_elapsed_ms": 6.552
     },
     {
       "phase": "none",
@@ -263,7 +331,7 @@
       "mode": "offline_fixture",
       "case_id": "S-N01",
       "status": "succeeded",
-      "scenario_elapsed_ms": 1.001
+      "scenario_elapsed_ms": 2.942
     },
     {
       "phase": "none",
@@ -271,7 +339,7 @@
       "mode": "offline_fixture",
       "case_id": "S-N02",
       "status": "succeeded",
-      "scenario_elapsed_ms": 1.001
+      "scenario_elapsed_ms": 2.942
     },
     {
       "phase": "none",
@@ -279,7 +347,7 @@
       "mode": "offline_fixture",
       "case_id": "S-N03",
       "status": "succeeded",
-      "scenario_elapsed_ms": 1.001
+      "scenario_elapsed_ms": 2.942
     },
     {
       "phase": "after",
@@ -287,7 +355,7 @@
       "mode": "offline_fixture",
       "case_id": "B-P01",
       "status": "succeeded",
-      "scenario_elapsed_ms": 7.062
+      "scenario_elapsed_ms": 16.183
     },
     {
       "phase": "after",
@@ -295,7 +363,7 @@
       "mode": "offline_fixture",
       "case_id": "B-P02",
       "status": "succeeded",
-      "scenario_elapsed_ms": 7.062
+      "scenario_elapsed_ms": 16.183
     },
     {
       "phase": "after",
@@ -303,7 +371,15 @@
       "mode": "offline_fixture",
       "case_id": "B-P03",
       "status": "succeeded",
-      "scenario_elapsed_ms": 7.062
+      "scenario_elapsed_ms": 16.183
+    },
+    {
+      "phase": "after",
+      "scenario_id": "baseline-after",
+      "mode": "offline_fixture",
+      "case_id": "B-P04",
+      "status": "succeeded",
+      "scenario_elapsed_ms": 16.183
     },
     {
       "phase": "none",
@@ -311,7 +387,7 @@
       "mode": "offline_fixture",
       "case_id": "B-N01",
       "status": "succeeded",
-      "scenario_elapsed_ms": 3.394
+      "scenario_elapsed_ms": 7.998
     },
     {
       "phase": "after",
@@ -319,7 +395,7 @@
       "mode": "offline_fixture",
       "case_id": "E-P01",
       "status": "succeeded",
-      "scenario_elapsed_ms": 1.942
+      "scenario_elapsed_ms": 5.45
     },
     {
       "phase": "before",
@@ -327,7 +403,7 @@
       "mode": "offline_fixture",
       "case_id": "E-N01",
       "status": "succeeded",
-      "scenario_elapsed_ms": 1.688
+      "scenario_elapsed_ms": 4.372
     },
     {
       "phase": "none",
@@ -367,7 +443,7 @@
       "mode": "offline_fixture",
       "case_id": "S-P04",
       "status": "succeeded",
-      "scenario_elapsed_ms": 0.238
+      "scenario_elapsed_ms": 0.598
     },
     {
       "phase": "none",
@@ -375,7 +451,7 @@
       "mode": "offline_fixture",
       "case_id": "S-P05",
       "status": "succeeded",
-      "scenario_elapsed_ms": 0.306
+      "scenario_elapsed_ms": 0.947
     },
     {
       "phase": "none",
@@ -383,7 +459,7 @@
       "mode": "offline_fixture",
       "case_id": "S-P06",
       "status": "succeeded",
-      "scenario_elapsed_ms": 0.306
+      "scenario_elapsed_ms": 0.947
     },
     {
       "phase": "none",
@@ -391,7 +467,7 @@
       "mode": "offline_fixture",
       "case_id": "S-P07",
       "status": "succeeded",
-      "scenario_elapsed_ms": 0.306
+      "scenario_elapsed_ms": 0.947
     },
     {
       "phase": "none",
@@ -399,7 +475,7 @@
       "mode": "offline_fixture",
       "case_id": "S-P08",
       "status": "succeeded",
-      "scenario_elapsed_ms": 0.246
+      "scenario_elapsed_ms": 0.655
     },
     {
       "phase": "none",
@@ -407,7 +483,7 @@
       "mode": "offline_fixture",
       "case_id": "S-P09",
       "status": "succeeded",
-      "scenario_elapsed_ms": 0.105
+      "scenario_elapsed_ms": 0.212
     },
     {
       "phase": "none",
@@ -415,7 +491,7 @@
       "mode": "offline_fixture",
       "case_id": "S-N04",
       "status": "succeeded",
-      "scenario_elapsed_ms": 0.044
+      "scenario_elapsed_ms": 0.081
     },
     {
       "phase": "after",
@@ -423,7 +499,7 @@
       "mode": "offline_fixture",
       "case_id": "B-N02",
       "status": "succeeded",
-      "scenario_elapsed_ms": 0.988
+      "scenario_elapsed_ms": 2.554
     },
     {
       "phase": "restored",
@@ -431,7 +507,7 @@
       "mode": "offline_fixture",
       "case_id": "B-N03",
       "status": "succeeded",
-      "scenario_elapsed_ms": 1.007
+      "scenario_elapsed_ms": 2.346
     },
     {
       "phase": "after",
@@ -439,7 +515,7 @@
       "mode": "offline_fixture",
       "case_id": "E-P02",
       "status": "succeeded",
-      "scenario_elapsed_ms": 0.308
+      "scenario_elapsed_ms": 0.828
     },
     {
       "phase": "none",
@@ -447,7 +523,7 @@
       "mode": "offline_fixture",
       "case_id": "E-N02",
       "status": "succeeded",
-      "scenario_elapsed_ms": 0.339
+      "scenario_elapsed_ms": 1.015
     },
     {
       "phase": "after",
@@ -455,7 +531,7 @@
       "mode": "offline_fixture",
       "case_id": "E-P03",
       "status": "succeeded",
-      "scenario_elapsed_ms": 0.285
+      "scenario_elapsed_ms": 0.839
     }
   ],
   "environment": {
@@ -470,31 +546,31 @@
     "实际调用 Python 检测器，未通过网络采集，也未接入 HTTP 服务或恒脑。",
     "基线由可信本地 fixture 提供；未验证后端审批、调度、身份鉴权与复测状态。"
   ],
-  "elapsed_ms": 59.718,
+  "elapsed_ms": 137.781,
   "input_sha256": {
-    "scanner\\__init__.py": "28abe6dbcde8781746015d93eae571954d9fdbb589709aedc15b6965ae78046a",
-    "scanner\\adapters\\__init__.py": "f1ac042452c3db45208ebb7a93469333547047cf88fe5d68509f3fc951e908e5",
-    "scanner\\adapters\\hengnao.py": "c3a1e56373f582ea1c422edcf8a1a28bc1737b0cc0c71e6e07217498544fb7d2",
-    "scanner\\baseline.py": "95c12dd6a929b23a5979cfd7f900e65c7b8fce311bfcbbf0d2241569e86d896a",
-    "scanner\\common\\__init__.py": "8131e0396cdea972f9e53e5fd8a468dbb19e365ed92034988d6b67ff0a1a1925",
-    "scanner\\common\\masking.py": "7ab6682acca3c707e639b02b9303f640641a0b97789d8352c421d602b586316b",
-    "scanner\\common\\models.py": "2a48557c9fe7e2dab7b4367b32bcde139d7b91829c493735257c2a29cc81eb11",
-    "scanner\\common\\text_utils.py": "c22554b113b767c03dc1a4c0021ec183c05866cbf2de13dc560936b2db109a71",
-    "scanner\\external_links.py": "d63f802c2b83140740b8941f08f67282c5b3fc162da405fea0672339f772f33d",
-    "scanner\\rules\\sensitive_rules.yaml": "7a9e43fbff4dd17d7aae5edb0c52f66b9d740d6aba47fdf3594772a818736e74",
-    "scanner\\rules.py": "b97792cb77e83d82f0c5ee83baf8b31ea182b1630034584b7003c10321390229",
-    "scanner\\sensitive.py": "86a894a75674e9a0d982a227eb89e854a7dc33748341fc73bc561f4382935fd8",
+    "scanner\\__init__.py": "35142cb45844c5315ae9cacf307bd4b426d6e0a8a72349b749bc162585d08fd8",
+    "scanner\\adapters\\__init__.py": "a7f41c55e6e01b3d9c4063a34f1593086d853f8ca77b8af72e59fc1d5c39ea9b",
+    "scanner\\adapters\\hengnao.py": "3db09d87e80692d1c6445b3c850500a4d64473ea8082ffce36e1d0ed37517e87",
+    "scanner\\baseline.py": "6a077119219c899f6edc1b6c3699ffea123cbdd8ae3719fe01816b82f4d9a2a9",
+    "scanner\\common\\__init__.py": "d53048ff4d7f7bcf624d06cdb1d783af5ce5a3f576e1575a01aca688f67be5bf",
+    "scanner\\common\\masking.py": "3993d9bd6839bd261b8cecc7edadfcaa099141c94e8ba475ef4f9ec3949f0218",
+    "scanner\\common\\models.py": "8ba45af7aa2b734ba75e9dc48b9ced1b35170ef605c6c0e0aa81269a69f3de0e",
+    "scanner\\common\\text_utils.py": "dfc2a12e3de67afea511e13fa214918652b482a295704c68d53ba728aaa37b9a",
+    "scanner\\external_links.py": "06e9d6be2756dbeb81fb3cc46443cc224b204922d57bf4f8b41be074f9a7c8e9",
+    "scanner\\rules\\sensitive_rules.yaml": "09da789f8330381b7f753865b7edef7456aa4e31f0b2362e5ee0c566fabacb23",
+    "scanner\\rules.py": "b0f5f490b8f3a31a1be52a246b83b3167a386fef05a5c4c1c03e9dc09c98a385",
+    "scanner\\sensitive.py": "9585098aa16b67258aa06d057623f7e8896db8f60004ff8c1faaa3823381b4f3",
     "test_site\\pages\\baseline_after.html": "8874d91b574bfa7c5ccbe41a5bbf7122bfd7e94244d14052f52967b4840ab641",
     "test_site\\pages\\baseline_before.html": "a8f29d45f2a24b3ee8b5891bcf16ed0e31f2aa234c21955a0933626525a7dcb7",
     "test_site\\pages\\dynamic.html": "3dfd78125a2b7e3b9e18468c9ddb2a0c22d3ccd1859c40466de5506a355e6f03",
-    "test_site\\pages\\external_after.html": "4ef612b049f998384b11987f3d08a4215a0eb2c0891b96b758f1ab607bef9d37",
+    "test_site\\pages\\external_after.html": "9a7eda5ea84cef3de5b2c7334d48599524afcd95fb6f5d644441410c8fdfa3bf",
     "test_site\\pages\\external_before.html": "2c7f3144b4ed397a6b52d6d3293e156775d3956081720ad7a044e7086ecff9b6",
-    "test_site\\pages\\sensitive_leak.html": "dc5fc2bdf9fb012b45f82045f242f20ffd8b22a62264c3261361982cdb123151",
+    "test_site\\pages\\sensitive_leak.html": "e833d21beab4dff6d5d83105f577756f9a6b55a873581ae54a5dc6f826e7dfcf",
     "test_site\\pages\\sensitive_placeholder.html": "abf8ab96d28df049785cf30866f8aaa4ba829702ed87bad6e2bd5cecfcf3d533",
-    "tests\\evaluate.py": "1f9bec24854b76999a2ec14acf00f6f2fe24a7e5c858044fc2136c6b83baf844",
-    "tests\\fixtures\\allowed_domains.json": "456e8fe6752566b90df7e7ea6dd253db3fda0838ad34b66f5057c6f068a52aa1",
-    "tests\\fixtures\\local_cases.json": "587161ebc21de1a4d6a2a7f98a8904edcf1ba547cf3efe9e1b89a6bf688d855f",
-    "tests\\ground_truth.json": "70967fac2f665846e2149b23476ee15e901cd878657a6692ae7c1afcb1413daf",
-    "tests\\run_local_evaluation.py": "4ddead023796f983655f6264dc477ad19b507df9b4301125ae2c76faade05d3f"
+    "tests\\evaluate.py": "e4bbd687e4d109e99bf3c3c3ffbd68d6a1d1a30a171142a4e701eb2b3a34d77c",
+    "tests\\fixtures\\allowed_domains.json": "9ac7368e1742abb06ad06b0f0c816dab19242e44584556199a2cde5c0b0c810a",
+    "tests\\fixtures\\local_cases.json": "1743d07f805fba86a4729d13d8180ea43cfd202875bad920ea9269c9f4057844",
+    "tests\\ground_truth.json": "d1d6b62e09945b25e2a2ba216c9350bd95793ed08722ed13dbbdac40091af81a",
+    "tests\\run_local_evaluation.py": "30d3ab5088ad20fb7ba1e1ecdab79ba3081cdd00f071e651df73fcb9bd6507ca"
   }
 }

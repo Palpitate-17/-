@@ -1,9 +1,9 @@
 {
   "kind": "hengnao_mock_api_compatible_examples",
-  "generated_at": "2026-10-02T15:48:38.222382+00:00",
+  "generated_at": "2026-10-02T20:42:34.609592+00:00",
   "compatibility_target": "PR #1 mock /scan response",
   "data_is_synthetic": true,
-  "deployment_status": "adapter_implemented_but_http_endpoint_not_deployed",
+  "deployment_status": "legacy_mock_adapter_only_live_api_uses_v1_contract",
   "notes": [
     "每个 response 只使用现有模拟 API 的 scan_id、simulated、target_url、findings 顶层字段。",
     "离线 fixture 必须保持 simulated=true；真实采集接入后才可由后端设置 false。",
@@ -59,6 +59,13 @@
             "evidence_masked": "归一化正文 SHA-256 与基线不同",
             "verification": "pending",
             "severity": "low"
+          },
+          {
+            "category": "integrity_change",
+            "url": "http://fixture.example.invalid/baseline/home",
+            "evidence_masked": "页面标签结构或关键属性与基线不同",
+            "verification": "pending",
+            "severity": "medium"
           },
           {
             "category": "integrity_change",

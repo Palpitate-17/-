@@ -45,7 +45,9 @@ def main() -> None:
     baseline = build_baseline(before, allowed)
     after = page("/baseline/home", '<title>维护</title><p>内容变化</p><script src="https://outside.example.invalid/app.js"></script>')
     add("CONTRACT-B-P", "baseline", {"page": asdict(after), "baseline": baseline.to_dict(), "allowed_domains": allowed},
-        compare_baseline(after, baseline, allowed), ["BASELINE_TITLE_CHANGED", "BASELINE_TEXT_CHANGED", "BASELINE_SCRIPT_ADDED"])
+        compare_baseline(after, baseline, allowed), [
+            "BASELINE_TITLE_CHANGED", "BASELINE_TEXT_CHANGED", "BASELINE_DOM_CHANGED", "BASELINE_SCRIPT_ADDED"
+        ])
     whitespace = page("/baseline/home", "<title>门户</title>\n<p>服务正常</p>\n  <p>欢迎访问</p>")
     add("CONTRACT-B-N", "baseline", {"page": asdict(whitespace), "baseline": baseline.to_dict(), "allowed_domains": allowed},
         compare_baseline(whitespace, baseline, allowed), [])
@@ -57,7 +59,7 @@ def main() -> None:
     add("CONTRACT-E-N", "external_links", {"page": asdict(external_before), "previous_links": previous, "allowed_domains": allowed},
         compare_external_links(external_before, previous, allowed), [])
     generated_at = datetime.now(timezone.utc).isoformat()
-    output = {"kind": "contract_samples_not_benchmark", "work_package_version": "v0.2.0",
+    output = {"kind": "contract_samples_not_benchmark", "work_package_version": "v0.3.0",
               "generated_at": generated_at, "data_is_synthetic": True, "network_requests": 0,
               "functions": {fn.__name__: str(inspect.signature(fn)) for fn in
                             (load_rules, detect_sensitive, build_baseline, compare_baseline, extract_external_links, compare_external_links)},
@@ -65,8 +67,8 @@ def main() -> None:
                                (PageInput, RawFinding, BaselineRecord)},
               "samples": samples,
               "limitations": ["输入与内部基线包含合成原始值；不得向智能体透传生产输入。",
-                              "不是 tests.evaluate 的输入结构，也不是已经上线的 HTTP 接口。",
-                              "当前不覆盖源码秘密、内联脚本基线或弱配置检测器。"]}
+                              "不是 tests.evaluate 的输入结构；真实 HTTP 契约以 docs/openapi.json 为准。",
+                              "弱配置和常见漏洞检测器仍未接入。"]}
     reports = ROOT / "reports"
     reports.mkdir(exist_ok=True)
     (reports / "module_contract_samples.json").write_text(json.dumps(output, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -101,7 +103,7 @@ def main() -> None:
                      "result": {"status": "skipped", "findings": [], "reason": skipped["reason"]},
                      "explanation": "弱配置检测器尚未接入，该项未执行。", "forbidden_claim": "安全响应头和 Cookie 检查已通过"})
     agent = {"kind": "agent_presentation_examples", "generated_at": generated_at,
-             "wrapper_status": "proposed_http_mapping_not_deployed", "examples": examples}
+             "wrapper_status": "legacy_offline_examples_use_openapi_for_live_api", "examples": examples}
     (reports / "agent_examples.json").write_text(json.dumps(agent, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     compatible_examples = []
@@ -125,7 +127,7 @@ def main() -> None:
         "generated_at": generated_at,
         "compatibility_target": "PR #1 mock /scan response",
         "data_is_synthetic": True,
-        "deployment_status": "adapter_implemented_but_http_endpoint_not_deployed",
+        "deployment_status": "legacy_mock_adapter_only_live_api_uses_v1_contract",
         "notes": [
             "每个 response 只使用现有模拟 API 的 scan_id、simulated、target_url、findings 顶层字段。",
             "离线 fixture 必须保持 simulated=true；真实采集接入后才可由后端设置 false。",

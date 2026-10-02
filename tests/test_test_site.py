@@ -22,3 +22,11 @@ def test_cookie_positive_and_negative_pages():
     secure = client.get("/weak/secure-cookie").headers["set-cookie"].lower()
     assert "httponly" not in insecure and "secure" not in insecure
     assert "httponly" in secure and "secure" in secure and "samesite=strict" in secure
+
+
+def test_site_serves_javascript_json_and_switchable_phase():
+    assert "synthetic-js-secret" in client.get("/assets/app.js").text
+    assert client.get("/assets/app.js").headers["content-type"].startswith("application/javascript")
+    assert client.get("/data/config.json").json()["environment"] == "demo"
+    assert client.post("/__test__/phase/after").json() == {"phase": "after"}
+    assert client.post("/__test__/phase/before").json() == {"phase": "before"}

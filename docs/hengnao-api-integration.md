@@ -21,7 +21,7 @@ API 工具请求头包含 `X-API-Key` 和 `Content-Type: application/json`。密
 
 ## 本地模拟 API 与临时 HTTPS
 
-本地服务代码见 [mock_scan_api.py](../prototype/mock_scan_api.py)。它只接受 `https://demo.example.test/`，返回固定虚构数据，不访问目标网站。启动前在同一个 PowerShell 窗口设置 `SCAN_API_KEY`，然后运行脚本。另一个窗口用 Cloudflare Quick Tunnel 将 `http://127.0.0.1:8000` 暴露为临时 HTTPS 地址；恒脑 API 工具的请求地址填域名，能力路径填 `/scan`。
+本地服务代码见 [mock_scan_api.py](../prototype/mock_scan_api.py)。它只接受 `https://demo.example.test/`，从[本地测试材料](../prototype/offline_fixture.json)生成模拟发现，不访问目标网站。启动前在同一个 PowerShell 窗口设置 `SCAN_API_KEY`，然后运行脚本。另一个窗口用 Cloudflare Quick Tunnel 将 `http://127.0.0.1:8000` 暴露为临时 HTTPS 地址；恒脑 API 工具的请求地址填域名，能力路径填 `/scan`。
 
 临时域名每次重建可能改变；本地 API 或隧道停止后，恒脑无法调用。正式演示应改用稳定 HTTPS 服务地址。若重新启动 API，确保 8000 端口只有一个监听进程，以免新旧密钥混用。
 
@@ -48,13 +48,26 @@ X-API-Key: <运行时密钥>
     {
       "category": "sensitive_exposure",
       "url": "https://demo.example.test/public/config.txt",
-      "evidence_masked": "api_key=DEMO-****",
+      "evidence_masked": "api_key=[REDACTED] (simulated HTTP 200)",
+      "verification": "pending",
+      "severity": "pending"
+    },
+    {
+      "category": "content_changed",
+      "url": "https://demo.example.test/",
+      "evidence_masked": "SHA-256 mismatch: expected 16bfc1ebd014, actual cce820515e1c (fixture)",
       "verification": "pending",
       "severity": "pending"
     }
   ]
 }
 ```
+
+## 2026-10-05 离线 MVP 进展
+
+`/scan` 的请求与顶层返回字段保持不变。服务现在逐页读取本地测试材料：检测形如 `api_key=...` 的演示字符串并隐藏其值；比较页面内容与预设 SHA-256 基线，生成内容变化记录。无异常的 `/about` 页面不会被列为发现。两类发现都保持 `simulated=true`、`verification=pending`、`severity=pending`，不能作为真实漏洞或篡改证据。
+
+运行 `python prototype/mock_scan_api.py --self-test` 可检查两类发现、脱敏、正常页面和超出测试范围的输入。这个版本不抓取网页、不发现子页面，也不判断页面是否真的对匿名用户开放。待提供获授权的测试站和真实 API 后，再做端到端联调。
 
 ## 大模型提示词要点
 
@@ -71,7 +84,7 @@ X-API-Key: <运行时密钥>
 3. 工作流按“开始 → 工具 → 大模型 → 结束”运行成功。
 4. 工具节点的 `result_key` 含完整模拟 JSON；结束节点输出中文巡检报告，明确“模拟发现、待核实”，展示脱敏证据，没有宣称实际扫描。
 
-验收截图：[工具节点输出](images/hengnao-tool-output.png)、[结束节点报告](images/hengnao-end-result.png)。截图只包含虚构测试值，没有运行密钥。
+当时的验收截图：[工具节点输出](images/hengnao-tool-output.png)、[结束节点报告](images/hengnao-end-result.png)。它们记录的是 10 月 2 日的固定响应版本；10 月 5 日的离线规则版已通过本地自检，尚未在恒脑重新试运行。截图只包含虚构测试值，没有运行密钥。
 
 ## 下一阶段交接
 

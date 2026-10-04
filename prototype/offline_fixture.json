@@ -1,0 +1,21 @@
+{
+  "target_url": "https://demo.example.test/",
+  "pages": [
+    {
+      "url": "https://demo.example.test/public/config.txt",
+      "status": 200,
+      "body": "api_key=DEMO-ONLY-12345"
+    },
+    {
+      "url": "https://demo.example.test/",
+      "status": 200,
+      "body": "Welcome to modified demo site",
+      "baseline_sha256": "16bfc1ebd014a8c5fc66f706c989371d320624de21d694d4daeab8615f5973fe"
+    },
+    {
+      "url": "https://demo.example.test/about",
+      "status": 200,
+      "body": "About this demo site"
+    }
+  ]
+}

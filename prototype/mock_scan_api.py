@@ -1,4 +1,4 @@
-"""Local-only mock API for testing HengNao's /scan integration.
+"""Offline fixture API for testing HengNao's /scan integration.
 
 Run in PowerShell:
     $env:SCAN_API_KEY = "<a-long-random-test-key>"
@@ -7,29 +7,60 @@ Run in PowerShell:
 
 import json
 import os
+import re
 import sys
+from hashlib import sha256
 from hmac import compare_digest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 TEST_TARGET = "https://demo.example.test/"
+FIXTURE = Path(__file__).with_name("offline_fixture.json")
+SECRET_PATTERN = re.compile(r"\b(api[_-]?key|token|secret)\s*[:=]\s*([A-Za-z0-9._-]{6,})", re.I)
 
 
 def mock_scan(target_url):
     if target_url.rstrip("/") != TEST_TARGET.rstrip("/"):
         raise ValueError("Only the simulated test target is supported")
+    fixture = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    if fixture["target_url"] != TEST_TARGET:
+        raise ValueError("Fixture target does not match the test target")
+    findings = []
+    for page in fixture["pages"]:
+        url = page["url"]
+        if not url.startswith(TEST_TARGET):
+            raise ValueError("Fixture page is outside the test target")
+        if page["status"] != 200:
+            continue
+        body = page["body"]
+        match = SECRET_PATTERN.search(body)
+        if match:
+            findings.append(
+                {
+                    "category": "sensitive_exposure",
+                    "url": url,
+                    "evidence_masked": f"{match.group(1)}=[REDACTED] (simulated HTTP 200)",
+                    "verification": "pending",
+                    "severity": "pending",
+                }
+            )
+        expected = page.get("baseline_sha256")
+        actual = sha256(body.encode("utf-8")).hexdigest()
+        if expected and expected != actual:
+            findings.append(
+                {
+                    "category": "content_changed",
+                    "url": url,
+                    "evidence_masked": f"SHA-256 mismatch: expected {expected[:12]}, actual {actual[:12]} (fixture)",
+                    "verification": "pending",
+                    "severity": "pending",
+                }
+            )
     return {
         "scan_id": "mock-001",
         "simulated": True,
         "target_url": TEST_TARGET,
-        "findings": [
-            {
-                "category": "sensitive_exposure",
-                "url": TEST_TARGET + "public/config.txt",
-                "evidence_masked": "api_key=DEMO-****",
-                "verification": "pending",
-                "severity": "pending",
-            }
-        ],
+        "findings": findings,
     }
 
 
@@ -62,8 +93,14 @@ class Handler(BaseHTTPRequestHandler):
 
 if __name__ == "__main__":
     if "--self-test" in sys.argv:
-        assert mock_scan(TEST_TARGET)["simulated"] is True
-        assert mock_scan(TEST_TARGET)["findings"][0]["verification"] == "pending"
+        result = mock_scan(TEST_TARGET)
+        assert result["simulated"] is True
+        assert {item["category"] for item in result["findings"]} == {
+            "sensitive_exposure", "content_changed"
+        }
+        assert all(item["verification"] == "pending" for item in result["findings"])
+        assert "DEMO-ONLY-12345" not in json.dumps(result)
+        assert all("/about" not in item["url"] for item in result["findings"])
         try:
             mock_scan("https://other.example.test/")
         except ValueError:

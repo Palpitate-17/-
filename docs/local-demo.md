@@ -26,6 +26,8 @@ Invoke-Item -LiteralPath demo-report.html
 
 首次应看到 `3 pages, 1 active, 0 resolved, 0 changed`。JSON 中 `simulated` 为 `false`，因为确实请求了本地网页；`data_kind` 为 `synthetic_local_demo`，表示页面内容仍是虚构测试数据。唯一当前发现应为 `sensitive_exposure`，证据仅显示 `api_key=[REDACTED]`。正常的 `about.html` 不应报问题。浏览器会打开 `demo-report.html`。
 
+同一次巡检还会运行本机的开源工具 curl，以 `HEAD` 方法读取**同一测试站首页**的响应头。`tool_checks` 中记录执行状态和配置观察；`X-Content-Type-Options` 缺失只表示演示站的响应头未设置该项，不能直接判为已验证漏洞。原始响应头保存在被 Git 忽略的 `.curl-headers.txt`，仅供本机核对，不要把它作为提交材料上传。此电脑验证时的 curl 版本是 `8.21.0 (Windows)`；采用的选项为 `-q --noproxy * --head --max-time 3 --proto =http --silent --show-error`，不会跟随跳转。curl 的 [官方手册](https://curl.se/docs/manpage.html)说明 `--head` 发送 HEAD 请求，许可见 [curl 项目许可](https://curl.se/docs/copyright.html)。
+
 ## 3. 修改演示页面并复测
 
 仍在第二个 PowerShell 窗口运行：

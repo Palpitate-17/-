@@ -53,9 +53,9 @@ Invoke-RestMethod -Uri 'https://你这次得到的域名.trycloudflare.com/healt
 
 在原 API 工具中把“请求地址”改为当前 `https://...trycloudflare.com` **域名**，能力“接口路径”仍为 `/scan`，请求方法 `POST`。请求头保留 `Content-Type = application/json`，并把 `X-API-Key` 的值更新为 `.local-api-key` 的完整内容；不要加引号、空格或 `Bearer`。工具输入参数 `target_url` 的样例值改为 `http://127.0.0.1:8765/`。本地演示站在你电脑上，由 API 读取；恒脑只调用临时 HTTPS API。
 
-先在 API 能力编辑页调试，确认返回 `scan_id`、`simulated: false`、`data_kind: synthetic_local_demo`、`pages`、`findings`、`resolved_findings`、`changes`。再回工作流，把开始节点的测试输入设为 `http://127.0.0.1:8765/`，工具节点 `target_url` 引用开始节点输入，大模型用户提示词通过变量选择器引用工具节点的 `result_key`。结束节点继续引用大模型的 `result_key`。
+先在 API 能力编辑页调试，确认返回 `scan_id`、`simulated: false`、`data_kind: synthetic_local_demo`、`pages`、`findings`、`resolved_findings`、`changes`、`tool_checks`。再回工作流，把开始节点的测试输入设为 `http://127.0.0.1:8765/`，工具节点 `target_url` 引用开始节点输入，大模型用户提示词通过变量选择器引用工具节点的 `result_key`。结束节点继续引用大模型的 `result_key`。
 
-大模型提示词要明确：这是本机虚构测试站；`simulated: false` 仅表示实际发起了本地 HTTP 请求，不代表真实业务网站风险已被验证。只根据 API 返回的字段描述当前发现、已消失的发现和页面变化；不得把测试标记说成真实密钥，也不得把页面变化直接称为篡改。
+大模型提示词要明确：这是本机虚构测试站；`simulated: false` 仅表示实际发起了本地 HTTP 请求，不代表真实业务网站风险已被验证。只根据 API 返回的字段描述当前发现、已消失的发现、页面变化和 `tool_checks` 中的配置观察；不得把测试标记说成真实密钥，也不得把页面变化或缺少响应头直接称为已确认漏洞。
 
 ## 6. 复测
 

@@ -56,6 +56,10 @@ with tempfile.TemporaryDirectory() as temp:
         status, first = post(port, api.API_KEY, target_url)
         assert status == 200 and len(first["pages"]) == 3 and len(first["findings"]) == 1
         assert "DEMO-ONLY-12345" not in json.dumps(first)
+        assert first["tool_checks"][0]["status"] == "ok"
+        assert first["tool_checks"][0]["http_status"] == 200
+        assert first["tool_checks"][0]["observations"][0]["category"] == "missing_security_header"
+        assert (root / ".curl-headers.txt").read_text(encoding="utf-8").startswith("HTTP/")
         for name in ("index.html", "about.html"):
             page = root / "site" / name
             body = page.read_bytes()

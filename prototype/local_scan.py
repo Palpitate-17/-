@@ -3,6 +3,8 @@
 import argparse
 import json
 import re
+import shutil
+import subprocess
 import time
 from collections import deque
 from datetime import datetime, timezone
@@ -62,6 +64,33 @@ class Links(HTMLParser):
     def handle_starttag(self, tag, attrs):
         if tag == "a":
             self.hrefs.extend(value for key, value in attrs if key == "href" and value)
+
+
+def probe_headers(target_url, raw_output_path):
+    """Read only the allowed demo root's headers with the open-source curl tool."""
+    raw_output_path.unlink(missing_ok=True)
+    executable = shutil.which("curl.exe") or shutil.which("curl")
+    if not executable:
+        return {"tool": "curl", "status": "unavailable", "observations": []}
+    command = [executable, "-q", "--noproxy", "*", "--head", "--max-time", "3",
+               "--proto", "=http", "--silent", "--show-error", target_url]
+    try:
+        process = subprocess.run(command, capture_output=True, timeout=5, check=True)
+    except (OSError, subprocess.SubprocessError):
+        return {"tool": "curl", "status": "error", "observations": []}
+    raw_output_path.write_bytes(process.stdout)
+    lines = process.stdout.decode("iso-8859-1").splitlines()
+    headers = {key.strip().lower(): value.strip() for line in lines if ":" in line
+               for key, value in [line.split(":", 1)]}
+    http_status = int(lines[0].split()[1]) if lines and re.match(r"HTTP/\S+ \d{3}", lines[0]) else None
+    observations = []
+    if http_status == 200 and "x-content-type-options" not in headers:
+        observations.append({"category": "missing_security_header", "url": target_url,
+                             "evidence_masked": "X-Content-Type-Options header absent",
+                             "verification": "pending", "severity": "pending"})
+    return {"tool": "curl", "status": "ok", "method": "HEAD", "url": target_url,
+            "raw_output_file": raw_output_path.name,
+            "http_status": http_status, "observations": observations}
 
 
 def scan(target_url, baseline_path, policy=None):
@@ -142,7 +171,8 @@ def scan(target_url, baseline_path, policy=None):
     return {"scan_id": datetime.now(timezone.utc).isoformat(), "simulated": False,
             "data_kind": "synthetic_local_demo", "target_url": origin + "/",
             "pages": pages, "findings": findings, "resolved_findings": resolved,
-            "changes": changes}
+            "changes": changes,
+            "tool_checks": [probe_headers(origin + "/", baseline_path.parent / ".curl-headers.txt")]}
 
 
 def html_report(result):
@@ -160,6 +190,9 @@ li{{overflow-wrap:anywhere}}.note{{background:#eef5ff;padding:1em}}</style>
 <h2>当前发现（{len(result['findings'])}）</h2><ul>{list_items(result['findings'])}</ul>
 <h2>本次已消失（{len(result['resolved_findings'])}）</h2><ul>{list_items(result['resolved_findings'])}</ul>
 <h2>内容变化（{len(result['changes'])}）</h2><ul>{list_items(result['changes'])}</ul>
+<h2>被动配置观察</h2><p>curl HEAD：{escape(result['tool_checks'][0]['status'])}；
+缺少响应头仅为配置观察，是否构成风险仍需核实。</p>
+<ul>{list_items(result['tool_checks'][0]['observations'])}</ul>
 </html>"""
 
 
@@ -169,7 +202,8 @@ def save_result(result, output_path, report_path, history_path):
     summary = {"scan_id": result["scan_id"], "target_url": result["target_url"],
                "pages": len(result["pages"]), "findings": len(result["findings"]),
                "resolved_findings": len(result["resolved_findings"]),
-               "changes": len(result["changes"])}
+               "changes": len(result["changes"]),
+               "tool_observations": len(result["tool_checks"][0]["observations"])}
     with history_path.open("a", encoding="utf-8") as history:
         history.write(json.dumps(summary, ensure_ascii=False) + "\n")
 

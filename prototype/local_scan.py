@@ -67,11 +67,13 @@ def scan(target_url, baseline_path):
         if status != 200 or not ("text/html" in content_type or "text/plain" in content_type):
             continue
         text = body.decode("utf-8", errors="replace")
-        digest = sha256(body).hexdigest()
+        # Text line endings may change on Git checkout without changing page content.
+        digest = sha256(body.replace(b"\r\n", b"\n")).hexdigest()
+        raw_digest = sha256(body).hexdigest()
         new[url] = digest
-        if url in old and old[url] != digest:
+        if url in old and old[url] not in (digest, raw_digest):
             changes.append({"url": url,
-                            "evidence_masked": f"SHA-256 changed: {old[url][:12]} -> {digest[:12]}"})
+                            "evidence_masked": f"Text SHA-256 changed: {old[url][:12]} -> {digest[:12]}"})
         for match in KEY_PATTERN.finditer(text):
             findings.append({"category": "sensitive_exposure", "url": url,
                              "evidence_masked": f"{match.group(1)}=[REDACTED]",

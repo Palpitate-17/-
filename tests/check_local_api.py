@@ -50,10 +50,15 @@ with tempfile.TemporaryDirectory() as temp:
         status, first = post(port, api.API_KEY, api.TARGET_URL)
         assert status == 200 and len(first["pages"]) == 3 and len(first["findings"]) == 1
         assert "DEMO-ONLY-12345" not in json.dumps(first)
+        for name in ("index.html", "about.html"):
+            page = root / "site" / name
+            body = page.read_bytes()
+            page.write_bytes(body.replace(b"\r\n", b"\n") if b"\r\n" in body else body.replace(b"\n", b"\r\n"))
         config.write_text("# issue removed\n", encoding="utf-8")
         status, second = post(port, api.API_KEY, api.TARGET_URL)
         assert status == 200 and len(second["findings"]) == 0
         assert len(second["resolved_findings"]) == len(second["changes"]) == 1
+        assert second["changes"][0]["url"].endswith("/public/config.txt")
         assert api.REPORT.exists()
         history = [json.loads(line) for line in api.HISTORY.read_text(encoding="utf-8").splitlines()]
         assert len(history) == 2

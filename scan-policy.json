@@ -1,0 +1,19 @@
+{
+  "target_url": "http://127.0.0.1:8765/",
+  "allowed_paths": ["/", "/about.html", "/public/config.txt"],
+  "interval_seconds": 30,
+  "sensitive_rules": [
+    {
+      "name": "api_key",
+      "pattern": "\\bapi[_-]?key\\s*[:=]\\s*[A-Za-z0-9._-]{6,}"
+    },
+    {
+      "name": "token",
+      "pattern": "\\btoken\\s*[:=]\\s*[A-Za-z0-9._-]{6,}"
+    },
+    {
+      "name": "secret",
+      "pattern": "\\bsecret\\s*[:=]\\s*[A-Za-z0-9._-]{6,}"
+    }
+  ]
+}

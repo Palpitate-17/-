@@ -5,6 +5,6 @@
 
 - [恒脑与 API 联调记录](docs/hengnao-api-integration.md)：工作流已用模拟数据跑通；10 月 5 日新增离线测试材料驱动的敏感信息和页面内容变化样例。
 - [离线 API](prototype/mock_scan_api.py)：执行 `python prototype/mock_scan_api.py --self-test` 检查规则。服务不访问真实网站，所有发现均待核实。
-- [本地真实请求演示](docs/local-demo.md)：在 `127.0.0.1` 上运行自建测试站，巡检程序实际读取页面并比较前后结果；测试内容均为虚构数据。
+- [本地真实请求演示](docs/local-demo.md)：在 `127.0.0.1` 上运行自建测试站，支持定时复扫、历史统计及前后结果比较；测试内容均为虚构数据。
 - [本地巡检 API 与恒脑联调](docs/hengnao-local-api.md)：通过带密钥的 `/scan` 接口调用同一段本地巡检逻辑，再由恒脑获取结果。
 - [MVP 本地演示与复测报告](docs/mvp-demo-report.md)：记录本机测试站的首次发现、修改文件与复测结果。

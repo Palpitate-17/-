@@ -1,5 +1,6 @@
 .demo-baseline.json
 demo-result.json
 demo-report.html
+demo-history.jsonl
 .local-api-key
 __pycache__/

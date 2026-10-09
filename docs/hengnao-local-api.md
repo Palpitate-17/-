@@ -65,4 +65,4 @@ Invoke-RestMethod -Uri 'https://你这次得到的域名.trycloudflare.com/healt
 Set-Content -LiteralPath demo_site\public\config.txt -Value '# Local demo: issue removed' -Encoding utf8
 ```
 
-再在恒脑试运行一次。预期 `findings` 为空、`resolved_findings` 有 1 条、`changes` 有 1 条。API 仍会同步写入 `demo-result.json` 和 `demo-report.html`，可在浏览器查看。若工具显示 `connect fail`，先检查 `/health`、三个服务窗口，以及 API 工具中是否保存了当前隧道域名；若显示 `Unauthorized`，检查 `.local-api-key` 与 `X-API-Key` 是否完全一致。
+再在恒脑试运行一次。预期 `findings` 为空、`resolved_findings` 有 1 条、`changes` 有 1 条。API 会同步更新 `demo-result.json` 和 `demo-report.html`，并在 `demo-history.jsonl` 追加本次巡检的数量统计；新增此功能后需要重启 API 进程。若工具显示 `connect fail`，先检查 `/health`、三个服务窗口，以及 API 工具中是否保存了当前隧道域名；若显示 `Unauthorized`，检查 `.local-api-key` 与 `X-API-Key` 是否完全一致。

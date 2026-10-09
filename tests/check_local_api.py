@@ -2,8 +2,10 @@
 
 import json
 import shutil
+import subprocess
 import sys
 import tempfile
+import time
 from functools import partial
 from http.client import HTTPConnection
 from http.server import HTTPServer, SimpleHTTPRequestHandler
@@ -36,6 +38,7 @@ with tempfile.TemporaryDirectory() as temp:
     api.BASELINE = root / "baseline.json"
     api.RESULT = root / "result.json"
     api.REPORT = root / "report.html"
+    api.HISTORY = root / "history.jsonl"
     api.API_KEY = "k" * 32
     endpoint = HTTPServer(("127.0.0.1", 0), api.Handler)
     for server in (site, endpoint):
@@ -52,6 +55,30 @@ with tempfile.TemporaryDirectory() as temp:
         assert status == 200 and len(second["findings"]) == 0
         assert len(second["resolved_findings"]) == len(second["changes"]) == 1
         assert api.REPORT.exists()
+        history = [json.loads(line) for line in api.HISTORY.read_text(encoding="utf-8").splitlines()]
+        assert len(history) == 2
+        assert [entry["findings"] for entry in history] == [1, 0]
+        assert [entry["resolved_findings"] for entry in history] == [0, 1]
+        assert "DEMO-ONLY-12345" not in api.HISTORY.read_text(encoding="utf-8")
+        interval_history = root / "interval-history.jsonl"
+        process = subprocess.Popen([
+            sys.executable, str(ROOT / "prototype" / "local_scan.py"),
+            "--url", api.TARGET_URL, "--interval", "1",
+            "--baseline", str(root / "interval-baseline.json"),
+            "--output", str(root / "interval-result.json"),
+            "--report", str(root / "interval-report.html"),
+            "--history", str(interval_history),
+        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        try:
+            deadline = time.monotonic() + 5
+            while time.monotonic() < deadline:
+                if interval_history.exists() and len(interval_history.read_text(encoding="utf-8").splitlines()) >= 2:
+                    break
+                time.sleep(0.1)
+            assert len(interval_history.read_text(encoding="utf-8").splitlines()) >= 2
+        finally:
+            process.terminate()
+            process.wait(timeout=3)
         print("Local API check passed")
     finally:
         endpoint.shutdown()

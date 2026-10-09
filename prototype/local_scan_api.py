@@ -5,7 +5,7 @@ from hmac import compare_digest
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
-from local_scan import html_report, scan
+from local_scan import save_result, scan
 
 ROOT = Path(__file__).resolve().parents[1]
 KEY_FILE = ROOT / ".local-api-key"
@@ -13,6 +13,7 @@ TARGET_URL = "http://127.0.0.1:8765/"
 BASELINE = ROOT / ".demo-baseline.json"
 RESULT = ROOT / "demo-result.json"
 REPORT = ROOT / "demo-report.html"
+HISTORY = ROOT / "demo-history.jsonl"
 API_KEY = ""
 
 
@@ -44,8 +45,7 @@ class Handler(BaseHTTPRequestHandler):
             if not isinstance(request, dict) or request.get("target_url") != TARGET_URL:
                 raise ValueError(f"Only {TARGET_URL} is allowed")
             result = scan(TARGET_URL, BASELINE)
-            RESULT.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
-            REPORT.write_text(html_report(result), encoding="utf-8")
+            save_result(result, RESULT, REPORT, HISTORY)
         except (ValueError, TypeError, json.JSONDecodeError) as exc:
             return self.send_json(400, {"error": str(exc)})
         except OSError:

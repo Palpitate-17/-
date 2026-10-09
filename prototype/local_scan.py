@@ -3,6 +3,7 @@
 import argparse
 import json
 import re
+import time
 from collections import deque
 from datetime import datetime, timezone
 from hashlib import sha256
@@ -115,16 +116,42 @@ li{{overflow-wrap:anywhere}}.note{{background:#eef5ff;padding:1em}}</style>
 </html>"""
 
 
+def save_result(result, output_path, report_path, history_path):
+    output_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    report_path.write_text(html_report(result), encoding="utf-8")
+    summary = {"scan_id": result["scan_id"], "target_url": result["target_url"],
+               "pages": len(result["pages"]), "findings": len(result["findings"]),
+               "resolved_findings": len(result["resolved_findings"]),
+               "changes": len(result["changes"])}
+    with history_path.open("a", encoding="utf-8") as history:
+        history.write(json.dumps(summary, ensure_ascii=False) + "\n")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--url", default="http://127.0.0.1:8765/")
     parser.add_argument("--baseline", type=Path, default=Path(".demo-baseline.json"))
     parser.add_argument("--output", type=Path, default=Path("demo-result.json"))
     parser.add_argument("--report", type=Path, default=Path("demo-report.html"))
+    parser.add_argument("--history", type=Path, default=Path("demo-history.jsonl"))
+    parser.add_argument("--interval", type=int, help="repeat every N seconds until Ctrl+C")
     args = parser.parse_args()
-    result = scan(args.url, args.baseline)
-    args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
-    args.report.write_text(html_report(result), encoding="utf-8")
-    print(f"Saved {args.output} and {args.report}: {len(result['pages'])} pages, "
-          f"{len(result['findings'])} active, {len(result['resolved_findings'])} resolved, "
-          f"{len(result['changes'])} changed")
+    if args.interval is not None and args.interval < 1:
+        parser.error("--interval must be at least 1 second")
+    try:
+        while True:
+            try:
+                result = scan(args.url, args.baseline)
+                save_result(result, args.output, args.report, args.history)
+                print(f"Saved {args.output} and {args.report}: {len(result['pages'])} pages, "
+                      f"{len(result['findings'])} active, {len(result['resolved_findings'])} resolved, "
+                      f"{len(result['changes'])} changed", flush=True)
+            except OSError as exc:
+                if args.interval is None:
+                    raise
+                print(f"Scan failed: {exc}", flush=True)
+            if args.interval is None:
+                break
+            time.sleep(args.interval)
+    except KeyboardInterrupt:
+        print("Stopped")

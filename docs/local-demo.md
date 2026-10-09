@@ -2,6 +2,8 @@
 
 下面只访问自己电脑上的 `127.0.0.1`。这一步先验证真实 HTTP 请求、页面发现、敏感字段脱敏与复测；它还不是完整参赛作品，也不用 Cloudflare 或恒脑。
 
+巡检策略在仓库根目录的 `scan-policy.json`：`target_url` 是唯一允许的本地站点，`allowed_paths` 是可读取的精确路径清单，`interval_seconds` 控制 `--watch` 的复扫间隔，`sensitive_rules` 中每条规则有 `name` 和 Python 正则表达式 `pattern`。规则命中时，报告只显示 `name=[REDACTED]`，不会输出匹配到的值。只使用自建演示站；策略文件不能把目标改成外部网站。
+
 ## 1. 开第一个 PowerShell 窗口：启动测试站
 
 ```powershell
@@ -42,10 +44,10 @@ Invoke-Item -LiteralPath demo-report.html
 测试站窗口保持运行时，可以在另一个 PowerShell 窗口运行：
 
 ```powershell
-& 'D:\AI\environ\python.exe' prototype\local_scan.py --interval 30
+& 'D:\AI\environ\python.exe' prototype\local_scan.py --watch
 ```
 
-程序会立即巡检一次，此后每 30 秒复扫；按 `Ctrl+C` 停止。每次成功巡检都会覆盖最新的 `demo-result.json`、`demo-report.html`，并向 `demo-history.jsonl` 追加一条仅含时间、目标 URL 和数量统计的记录。查看历史：
+程序会立即巡检一次，此后按 `scan-policy.json` 的 `interval_seconds` 复扫（初始为 30 秒）；按 `Ctrl+C` 停止。也可用 `--interval 10` 临时覆盖间隔。每次成功巡检都会覆盖最新的 `demo-result.json`、`demo-report.html`，并向 `demo-history.jsonl` 追加一条仅含时间、目标 URL 和数量统计的记录。查看历史：
 
 ```powershell
 Get-Content -LiteralPath demo-history.jsonl -Encoding utf8
@@ -62,6 +64,6 @@ Remove-Item -LiteralPath .demo-baseline.json,demo-result.json,demo-report.html,d
 
 只删除本演示生成的基线和结果。第一个窗口用 `Ctrl+C` 停止测试站。不要将真实密钥写入测试页面或仓库。
 
-当前脚本只允许 `http://127.0.0.1:<port>/`，最多读取 10 个页面、单页 256 KiB，不跟随跳转，也不请求外部链接。定时复扫仅在命令行进程运行期间生效；告警、自定义授权范围和真实网站验证仍是后续阶段。HTML 报告只覆盖本地演示结果。
+当前脚本只允许策略指定的 `http://127.0.0.1:<port>/`，最多读取 10 个允许路径上的页面、单页 256 KiB，不跟随跳转，也不请求外部链接。定时复扫仅在命令行进程运行期间生效；告警和真实网站验证仍是后续阶段。HTML 报告只覆盖本地演示结果。
 
 文本内容比较会忽略 LF 与 CRLF 换行差异，避免 Windows 的 Git 换行转换产生误报；其他内容变化仍会记录。历史中已写入的旧记录不会被改写。

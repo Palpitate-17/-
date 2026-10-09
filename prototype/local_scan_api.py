@@ -5,11 +5,11 @@ from hmac import compare_digest
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 
-from local_scan import save_result, scan
+from local_scan import load_policy, save_result, scan
 
 ROOT = Path(__file__).resolve().parents[1]
 KEY_FILE = ROOT / ".local-api-key"
-TARGET_URL = "http://127.0.0.1:8765/"
+POLICY = load_policy(ROOT / "scan-policy.json")
 BASELINE = ROOT / ".demo-baseline.json"
 RESULT = ROOT / "demo-result.json"
 REPORT = ROOT / "demo-report.html"
@@ -42,9 +42,9 @@ class Handler(BaseHTTPRequestHandler):
             if not 0 < size <= 4096:
                 raise ValueError("Request body must be 1-4096 bytes")
             request = json.loads(self.rfile.read(size))
-            if not isinstance(request, dict) or request.get("target_url") != TARGET_URL:
-                raise ValueError(f"Only {TARGET_URL} is allowed")
-            result = scan(TARGET_URL, BASELINE)
+            if not isinstance(request, dict) or request.get("target_url") != POLICY["target_url"]:
+                raise ValueError(f"Only {POLICY['target_url']} is allowed")
+            result = scan(POLICY["target_url"], BASELINE, POLICY)
             save_result(result, RESULT, REPORT, HISTORY)
         except (ValueError, TypeError, json.JSONDecodeError) as exc:
             return self.send_json(400, {"error": str(exc)})

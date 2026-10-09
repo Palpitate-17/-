@@ -13,9 +13,45 @@ from http.client import HTTPConnection
 from pathlib import Path
 from urllib.parse import urljoin, urlsplit, urlunsplit
 
-KEY_PATTERN = re.compile(r"\b(api[_-]?key|token|secret)\s*[:=]\s*([A-Za-z0-9._-]{6,})", re.I)
 MAX_PAGES = 10
 MAX_BYTES = 262144
+DEFAULT_POLICY = Path(__file__).resolve().parents[1] / "scan-policy.json"
+
+
+def load_policy(path=DEFAULT_POLICY):
+    policy = json.loads(Path(path).read_text(encoding="utf-8"))
+    target = urlsplit(policy["target_url"])
+    try:
+        port = target.port
+    except ValueError as exc:
+        raise ValueError("Invalid local port") from exc
+    if (target.scheme != "http" or target.hostname != "127.0.0.1" or not port
+            or target.path != "/" or target.query or target.fragment
+            or target.username or target.password or target.netloc != f"127.0.0.1:{port}"):
+        raise ValueError("Policy target_url must be http://127.0.0.1:<port>/")
+    paths = policy["allowed_paths"]
+    if (not isinstance(paths, list) or not paths or len(paths) > MAX_PAGES
+            or "/" not in paths or any(not isinstance(p, str) or not p.startswith("/")
+            or p.startswith("//") or "?" in p or "#" in p
+            or any(segment in (".", "..") for segment in p.split("/")) for p in paths)
+            or len(set(paths)) != len(paths)):
+        raise ValueError("allowed_paths must list up to 10 distinct local paths, including /")
+    interval = policy["interval_seconds"]
+    if type(interval) is not int or interval < 1:
+        raise ValueError("interval_seconds must be a positive integer")
+    rules = policy["sensitive_rules"]
+    if not isinstance(rules, list) or not rules or len(rules) > 20:
+        raise ValueError("sensitive_rules must contain 1-20 rules")
+    compiled = []
+    for rule in rules:
+        if (not isinstance(rule, dict) or not isinstance(rule.get("name"), str)
+                or not re.fullmatch(r"[A-Za-z][A-Za-z0-9_-]{0,39}", rule["name"])
+                or not isinstance(rule.get("pattern"), str)
+                or not rule["pattern"] or len(rule["pattern"]) > 500):
+            raise ValueError("Each sensitive rule needs a name and pattern")
+        compiled.append((rule["name"], re.compile(rule["pattern"], re.I)))
+    return {"target_url": policy["target_url"], "allowed_paths": set(paths),
+            "interval_seconds": interval, "sensitive_rules": compiled}
 
 
 class Links(HTMLParser):
@@ -28,7 +64,10 @@ class Links(HTMLParser):
             self.hrefs.extend(value for key, value in attrs if key == "href" and value)
 
 
-def scan(target_url, baseline_path):
+def scan(target_url, baseline_path, policy=None):
+    policy = policy or load_policy()
+    if target_url != policy["target_url"]:
+        raise ValueError("Target URL does not match local policy")
     target = urlsplit(target_url)
     if target.scheme != "http" or target.hostname != "127.0.0.1" or target.username or target.password:
         raise ValueError("Only http://127.0.0.1:<port>/ is allowed")
@@ -52,6 +91,8 @@ def scan(target_url, baseline_path):
             continue
         seen.add(url)
         path = urlsplit(url).path
+        if path not in policy["allowed_paths"]:
+            continue
         connection = HTTPConnection("127.0.0.1", port, timeout=3)
         try:
             connection.request("GET", path)
@@ -74,16 +115,20 @@ def scan(target_url, baseline_path):
         if url in old and old[url] not in (digest, raw_digest):
             changes.append({"url": url,
                             "evidence_masked": f"Text SHA-256 changed: {old[url][:12]} -> {digest[:12]}"})
-        for match in KEY_PATTERN.finditer(text):
-            findings.append({"category": "sensitive_exposure", "url": url,
-                             "evidence_masked": f"{match.group(1)}=[REDACTED]",
-                             "verification": "pending", "severity": "pending"})
+        for name, pattern in policy["sensitive_rules"]:
+            for _ in pattern.finditer(text):
+                finding = {"category": "sensitive_exposure", "url": url,
+                           "evidence_masked": f"{name}=[REDACTED]",
+                           "verification": "pending", "severity": "pending"}
+                if finding not in findings:
+                    findings.append(finding)
         if "text/html" in content_type:
             links = Links()
             links.feed(text)
             for href in links.hrefs:
                 candidate = urlsplit(urljoin(url, href))
-                if candidate.scheme == "http" and candidate.hostname == "127.0.0.1" and candidate.port == port:
+                if (candidate.scheme == "http" and candidate.hostname == "127.0.0.1"
+                        and candidate.port == port and candidate.path in policy["allowed_paths"]):
                     clean = urlunsplit(("http", f"127.0.0.1:{port}", candidate.path or "/", "", ""))
                     if clean not in seen and clean not in queue:
                         queue.append(clean)
@@ -131,29 +176,36 @@ def save_result(result, output_path, report_path, history_path):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--url", default="http://127.0.0.1:8765/")
+    parser.add_argument("--policy", type=Path, default=DEFAULT_POLICY)
+    parser.add_argument("--url", help="must match the policy target_url")
     parser.add_argument("--baseline", type=Path, default=Path(".demo-baseline.json"))
     parser.add_argument("--output", type=Path, default=Path("demo-result.json"))
     parser.add_argument("--report", type=Path, default=Path("demo-report.html"))
     parser.add_argument("--history", type=Path, default=Path("demo-history.jsonl"))
-    parser.add_argument("--interval", type=int, help="repeat every N seconds until Ctrl+C")
+    parser.add_argument("--watch", action="store_true", help="repeat using policy interval_seconds")
+    parser.add_argument("--interval", type=int, help="override policy interval; repeat until Ctrl+C")
     args = parser.parse_args()
+    policy = load_policy(args.policy)
+    target_url = args.url or policy["target_url"]
+    if target_url != policy["target_url"]:
+        parser.error("--url must match policy target_url")
     if args.interval is not None and args.interval < 1:
         parser.error("--interval must be at least 1 second")
+    interval = args.interval if args.interval is not None else policy["interval_seconds"] if args.watch else None
     try:
         while True:
             try:
-                result = scan(args.url, args.baseline)
+                result = scan(target_url, args.baseline, policy)
                 save_result(result, args.output, args.report, args.history)
                 print(f"Saved {args.output} and {args.report}: {len(result['pages'])} pages, "
                       f"{len(result['findings'])} active, {len(result['resolved_findings'])} resolved, "
                       f"{len(result['changes'])} changed", flush=True)
             except OSError as exc:
-                if args.interval is None:
+                if interval is None:
                     raise
                 print(f"Scan failed: {exc}", flush=True)
-            if args.interval is None:
+            if interval is None:
                 break
-            time.sleep(args.interval)
+            time.sleep(interval)
     except KeyboardInterrupt:
         print("Stopped")

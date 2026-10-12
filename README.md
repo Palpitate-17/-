@@ -10,4 +10,5 @@
 - [新目录复现指南](docs/portable-setup.md)：不依赖作者电脑路径，在独立目录完成本地启动、首次巡检、复测和可选的恒脑联调。
 - [MVP 本地演示与复测报告](docs/mvp-demo-report.md)：记录本机测试站的首次发现、修改文件与复测结果。
 - [10 月 25 日提交推进表](docs/submission-plan.md)：按比赛材料列出当前缺口、完成顺序和必交文件。
+- [作品报告内容初稿](docs/competition-report-draft.md)：按附件5章节撰写已验证的离线 MVP，标明待核对内容。
 - [恒脑当前工作流提示词](docs/hengnao-current-prompt.md)：按 API 字段区分当前发现、已消失条目、内容变化和被动配置观察。

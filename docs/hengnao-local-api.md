@@ -57,6 +57,8 @@ Invoke-RestMethod -Uri 'https://你这次得到的域名.trycloudflare.com/healt
 
 大模型提示词要明确：这是本机虚构测试站；`simulated: false` 仅表示实际发起了本地 HTTP 请求，不代表真实业务网站风险已被验证。只根据 API 返回的字段描述当前发现、已消失的发现、页面变化和 `tool_checks` 中的配置观察；不得把测试标记说成真实密钥，也不得把页面变化或缺少响应头直接称为已确认漏洞。
 
+当前工作流可直接使用 [系统与用户提示词](hengnao-current-prompt.md)。旧版手工资料提示词中的“未实际访问网站”不适用于本地 HTTP 巡检。
+
 ## 6. 复测
 
 在窗口 C 执行：

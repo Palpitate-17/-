@@ -43,3 +43,9 @@
 - 恒脑首次巡检与复测的文字结果已归纳在本报告中；演示时可直接重新运行工作流展示。
 
 下一阶段应在取得明确授权和测试范围后，再设计真实站点的目标约束、访问控制验证与风险复核流程。当前 MVP 仅证明本地虚构场景的“发现 → 修改 → 复测 → 报告”链路可运行。
+
+## 五、2026-10-12 再次联调
+
+经恒脑工作流调用后，本地 `demo-result.json` 记录的复测 `scan_id` 为 `2026-10-12T10:26:14.480039+00:00`。本次读取 3 个本地页面，`findings=0`、`resolved_findings=1`、`changes=1`。已消失条目仍是 `/public/config.txt` 的 `sensitive_exposure` 规则命中；内容哈希摘要从 `7e7cf3d850ae` 变为 `255bbf7ea6e4`。curl 的 HEAD 检查成功，并记录 1 条“X-Content-Type-Options header absent”的配置观察。所有条目均来自自建演示站，不能作为真实业务网站的风险结论。
+
+这次模型报告把已消失条目同时放进“风险发现”和“已消失的发现”，并写成“未实际访问网站”。这两处与 API 结果不符。已整理 [当前工作流提示词](hengnao-current-prompt.md)，分别约束 `findings`、`resolved_findings`、`changes` 和 `tool_checks` 的归类，并准确描述本地 HTTP 请求。

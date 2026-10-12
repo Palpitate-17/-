@@ -4,4 +4,11 @@ demo-report.html
 demo-history.jsonl
 .local-api-key
 .curl-headers.txt
+scan-public-policy.json
+.public-baseline.json
+public-result.json
+public-report.html
+public-history.jsonl
+vuln-intel.json
+.osv-demo.json
 __pycache__/

@@ -49,3 +49,9 @@
 经恒脑工作流调用后，本地 `demo-result.json` 记录的复测 `scan_id` 为 `2026-10-12T10:26:14.480039+00:00`。本次读取 3 个本地页面，`findings=0`、`resolved_findings=1`、`changes=1`。已消失条目仍是 `/public/config.txt` 的 `sensitive_exposure` 规则命中；内容哈希摘要从 `7e7cf3d850ae` 变为 `255bbf7ea6e4`。curl 的 HEAD 检查成功，并记录 1 条“X-Content-Type-Options header absent”的配置观察。所有条目均来自自建演示站，不能作为真实业务网站的风险结论。
 
 这次模型报告把已消失条目同时放进“风险发现”和“已消失的发现”，并写成“未实际访问网站”。这两处与 API 结果不符。已整理 [当前工作流提示词](hengnao-current-prompt.md)，分别约束 `findings`、`resolved_findings`、`changes` 和 `tool_checks` 的归类，并准确描述本地 HTTP 请求。
+
+## 六、2026-10-12 提示词修订后验收
+
+同一自建演示站先加入虚构标记，再由恒脑调用本地 API；首次结果为 `findings=1`、`resolved_findings=0`、`changes=0`、配置观察 1 条。模型初次把当前发现误放进“待核实事项”，因此进一步要求它先核对数组长度、再逐栏输出。修订后模型将 `sensitive_exposure` 放在“当前发现”，并在结论中给出 `1/0/0/1`，与 API 数量一致。
+
+随后只将演示文件改为 `# Local demo: issue removed`，不清除基线。2026-10-12 19:45:52（本机时间）的原始 API 结果读取 3 个页面，`findings=0`、`resolved_findings=1`、`changes=1`、配置观察 1 条；已消失条目的 `resolution_status=rule_no_longer_matched`。恒脑报告按相同数量分别归入“当前发现”“本次已消失”“内容变化”“被动配置观察”，并注明哈希变化不证明未授权篡改。本轮端到端复测通过。这里验证的是本地虚构场景的报告分类，不是对真实业务网站的漏洞确认。

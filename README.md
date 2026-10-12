@@ -7,6 +7,7 @@
 - [离线 API](prototype/mock_scan_api.py)：执行 `python prototype/mock_scan_api.py --self-test` 检查规则。服务不访问真实网站，所有发现均待核实。
 - [本地真实请求演示](docs/local-demo.md)：在 `127.0.0.1` 上运行自建测试站，支持定时复扫、历史统计及前后结果比较；测试内容均为虚构数据。
 - [本地巡检 API 与恒脑联调](docs/hengnao-local-api.md)：通过带密钥的 `/scan` 接口调用同一段本地巡检逻辑，再由恒脑获取结果。
+- [新目录复现指南](docs/portable-setup.md)：不依赖作者电脑路径，在独立目录完成本地启动、首次巡检、复测和可选的恒脑联调。
 - [MVP 本地演示与复测报告](docs/mvp-demo-report.md)：记录本机测试站的首次发现、修改文件与复测结果。
 - [10 月 25 日提交推进表](docs/submission-plan.md)：按比赛材料列出当前缺口、完成顺序和必交文件。
 - [恒脑当前工作流提示词](docs/hengnao-current-prompt.md)：按 API 字段区分当前发现、已消失条目、内容变化和被动配置观察。

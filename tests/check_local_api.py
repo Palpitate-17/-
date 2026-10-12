@@ -32,7 +32,7 @@ with tempfile.TemporaryDirectory() as temp:
     root = Path(temp)
     shutil.copytree(ROOT / "demo_site", root / "site")
     config = root / "site" / "public" / "config.txt"
-    config.write_text("api_key=DEMO-ONLY-12345\n", encoding="utf-8")
+    config.write_text("api_key=DEMO-ONLY-12345\napi_key=DEMO-ONLY-12345\n", encoding="utf-8")
     site = HTTPServer(("127.0.0.1", 0), partial(SimpleHTTPRequestHandler, directory=str(root / "site")))
     policy_file = root / "scan-policy.json"
     policy = json.loads((ROOT / "scan-policy.json").read_text(encoding="utf-8"))
@@ -56,9 +56,13 @@ with tempfile.TemporaryDirectory() as temp:
         status, first = post(port, api.API_KEY, target_url)
         assert status == 200 and len(first["pages"]) == 3 and len(first["findings"]) == 1
         assert "DEMO-ONLY-12345" not in json.dumps(first)
+        assert first["findings"][0]["verification"] == first["findings"][0]["severity"] == "pending"
+        assert first["findings"][0]["potential_impact"]
+        assert first["findings"][0]["remediation_if_confirmed"]
         assert first["tool_checks"][0]["status"] == "ok"
         assert first["tool_checks"][0]["http_status"] == 200
         assert first["tool_checks"][0]["observations"][0]["category"] == "missing_security_header"
+        assert first["tool_checks"][0]["observations"][0]["remediation_if_confirmed"]
         assert (root / ".curl-headers.txt").read_text(encoding="utf-8").startswith("HTTP/")
         for name in ("index.html", "about.html"):
             page = root / "site" / name
@@ -68,8 +72,11 @@ with tempfile.TemporaryDirectory() as temp:
         status, second = post(port, api.API_KEY, target_url)
         assert status == 200 and len(second["findings"]) == 0
         assert len(second["resolved_findings"]) == len(second["changes"]) == 1
+        assert second["resolved_findings"][0]["resolution_status"] == "rule_no_longer_matched"
+        assert "不证明" in second["changes"][0]["interpretation"]
         assert second["changes"][0]["url"].endswith("/public/config.txt")
         assert api.REPORT.exists()
+        assert "核实后建议" in api.REPORT.read_text(encoding="utf-8")
         history = [json.loads(line) for line in api.HISTORY.read_text(encoding="utf-8").splitlines()]
         assert len(history) == 2
         assert [entry["findings"] for entry in history] == [1, 0]

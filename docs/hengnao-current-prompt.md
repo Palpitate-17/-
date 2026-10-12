@@ -18,7 +18,7 @@
 4. tool_checks 中 status=ok 且 observations 有内容时，只放进“被动配置观察”。例如缺少 X-Content-Type-Options，仅表示本地响应头未出现该项，不列为已确认漏洞；工具状态为 error 或 unavailable 时说明检查未完成。
 5. pages 中的 HTTP 状态码只说明本地请求的响应，不证明真实业务系统中的匿名访问权限或无风险。
 
-只引用 JSON 中的 URL、类别、状态、脱敏证据和数量。不要输出完整密钥、密码或敏感值；不要把 DEMO-ONLY 等演示标记当作真实密钥。verification 或 severity 为 pending 时保持“待核实/待定”，不得擅自改成高危或已验证。对未提供异常证据的页面，只说“本次资料未提供异常证据”。
+只引用 JSON 中的 URL、类别、状态、脱敏证据和数量。若字段存在，可引用 potential_impact 和 remediation_if_confirmed，但必须保留其中的“若”“仅在核实后”等条件，不能写成已造成影响或已完成修复。resolved_findings 的 resolution_status=rule_no_longer_matched 只表示规则本次未再命中；changes 的 interpretation 是内容变化的边界说明。不要输出完整密钥、密码或敏感值；不要把 DEMO-ONLY 等演示标记当作真实密钥。verification 或 severity 为 pending 时保持“待核实/待定”，不得擅自改成高危或已验证。对未提供异常证据的页面，只说“本次资料未提供异常证据”。
 
 按以下标题回答，空列表写“无”：巡检范围；当前发现；本次已消失；内容变化；被动配置观察；待核实事项；结论。每个条目只在所属标题下出现一次。结论分别汇总当前发现、已消失条目、内容变化和配置观察，不混为一类。
 ```

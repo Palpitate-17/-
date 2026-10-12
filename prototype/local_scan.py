@@ -18,6 +18,10 @@ from urllib.parse import urljoin, urlsplit, urlunsplit
 MAX_PAGES = 10
 MAX_BYTES = 262144
 DEFAULT_POLICY = Path(__file__).resolve().parents[1] / "scan-policy.json"
+SENSITIVE_IMPACT = "若真实凭据以同样方式被未授权读取，可能导致凭据滥用；本地演示未验证这一条件。"
+SENSITIVE_REMEDIATION = "仅在核实真实凭据暴露后，移除公开配置、限制访问并轮换受影响凭据。"
+HEADER_IMPACT = "缺少该响应头可能允许浏览器进行 MIME 嗅探；是否影响实际业务需结合内容类型核实。"
+HEADER_REMEDIATION = "若需禁止 MIME 嗅探，在对应响应中设置 X-Content-Type-Options: nosniff 并复查。"
 
 
 def load_policy(path=DEFAULT_POLICY):
@@ -87,7 +91,9 @@ def probe_headers(target_url, raw_output_path):
     if http_status == 200 and "x-content-type-options" not in headers:
         observations.append({"category": "missing_security_header", "url": target_url,
                              "evidence_masked": "X-Content-Type-Options header absent",
-                             "verification": "pending", "severity": "pending"})
+                             "verification": "pending", "severity": "pending",
+                             "potential_impact": HEADER_IMPACT,
+                             "remediation_if_confirmed": HEADER_REMEDIATION})
     return {"tool": "curl", "status": "ok", "method": "HEAD", "url": target_url,
             "raw_output_file": raw_output_path.name,
             "http_status": http_status, "observations": observations}
@@ -143,12 +149,16 @@ def scan(target_url, baseline_path, policy=None):
         new[url] = digest
         if url in old and old[url] not in (digest, raw_digest):
             changes.append({"url": url,
-                            "evidence_masked": f"Text SHA-256 changed: {old[url][:12]} -> {digest[:12]}"})
+                            "evidence_masked": f"Text SHA-256 changed: {old[url][:12]} -> {digest[:12]}",
+                            "verification": "pending",
+                            "interpretation": "仅表示本地页面内容变化，不证明发生未授权篡改。"})
         for name, pattern in policy["sensitive_rules"]:
             for _ in pattern.finditer(text):
                 finding = {"category": "sensitive_exposure", "url": url,
                            "evidence_masked": f"{name}=[REDACTED]",
-                           "verification": "pending", "severity": "pending"}
+                           "verification": "pending", "severity": "pending",
+                           "potential_impact": SENSITIVE_IMPACT,
+                           "remediation_if_confirmed": SENSITIVE_REMEDIATION}
                 if finding not in findings:
                     findings.append(finding)
         if "text/html" in content_type:
@@ -163,22 +173,28 @@ def scan(target_url, baseline_path, policy=None):
                         queue.append(clean)
 
     active = {(item["category"], item["url"], item["evidence_masked"]) for item in findings}
-    resolved = [item for item in previous
+    resolved = [{**item, "resolution_status": "rule_no_longer_matched"} for item in previous
                 if item["url"] in new
                 and (item["category"], item["url"], item["evidence_masked"]) not in active]
+    tool_check = probe_headers(origin + "/", baseline_path.parent / ".curl-headers.txt")
     baseline_path.write_text(json.dumps({"hashes": new, "active_findings": findings},
                                         ensure_ascii=False, indent=2), encoding="utf-8")
     return {"scan_id": datetime.now(timezone.utc).isoformat(), "simulated": False,
             "data_kind": "synthetic_local_demo", "target_url": origin + "/",
             "pages": pages, "findings": findings, "resolved_findings": resolved,
-            "changes": changes,
-            "tool_checks": [probe_headers(origin + "/", baseline_path.parent / ".curl-headers.txt")]}
+            "changes": changes, "tool_checks": [tool_check]}
 
 
 def html_report(result):
     def list_items(items):
-        return "".join(f"<li>{escape(item['url'])}: {escape(item['evidence_masked'])}</li>"
-                       for item in items) or "<li>无</li>"
+        rows = []
+        for item in items:
+            details = "".join(f"<br>{label}：{escape(item[key])}" for key, label in (
+                ("potential_impact", "潜在影响"),
+                ("remediation_if_confirmed", "核实后建议"),
+                ("interpretation", "解释")) if item.get(key))
+            rows.append(f"<li>{escape(item['url'])}: {escape(item['evidence_masked'])}{details}</li>")
+        return "".join(rows) or "<li>无</li>"
 
     return f"""<!doctype html><html lang="zh-CN"><meta charset="utf-8">
 <title>本地巡检报告</title><style>body{{font:16px/1.6 sans-serif;max-width:900px;margin:2em auto;padding:0 1em}}

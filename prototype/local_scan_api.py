@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import os
 import time
 from hashlib import sha256
 from hmac import compare_digest
@@ -85,11 +86,13 @@ if __name__ == "__main__":
         ACTIVE_POLICIES = [load_policy(path) for path in args.policy]
         if len({p["target_url"] for p in ACTIVE_POLICIES}) != len(ACTIVE_POLICIES):
             raise SystemExit("Duplicate target_url in policies")
-    if not KEY_FILE.exists():
-        raise SystemExit("Create .local-api-key before starting; see docs/hengnao-local-api.md")
-    API_KEY = KEY_FILE.read_text(encoding="utf-8").strip()
+    API_KEY = os.environ.get("SCAN_API_KEY", "").strip()
+    if not API_KEY and KEY_FILE.exists():
+        API_KEY = KEY_FILE.read_text(encoding="utf-8").strip()
     if len(API_KEY) < 32:
-        raise SystemExit(".local-api-key must contain at least 32 characters")
-    server = HTTPServer(("127.0.0.1", 8001), Handler)
-    print("Scan API listening on http://127.0.0.1:8001/scan", flush=True)
+        raise SystemExit("Set SCAN_API_KEY or create .local-api-key with at least 32 characters")
+    port = int(os.environ.get("PORT", "8001"))
+    host = "0.0.0.0" if "PORT" in os.environ else "127.0.0.1"
+    server = HTTPServer((host, port), Handler)
+    print(f"Scan API listening on http://{host}:{port}/scan", flush=True)
     server.serve_forever()

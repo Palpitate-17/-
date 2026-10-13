@@ -14,3 +14,4 @@
 - [恒脑当前工作流提示词](docs/hengnao-current-prompt.md)：按 API 字段区分当前发现、已消失条目、内容变化和被动配置观察。
 - [公开数据与远端巡检路线](docs/public-data-and-remote-scan.md)：限域 HTTPS 巡检、OSV/CISA 漏洞情报，以及 GitHub Actions 远端扫描公开测试靶场的方案。
 - [输入网址实时巡检](docs/public-data-and-remote-scan.md#恒脑输入网址后立即巡检)：带密钥的 `POST /scan` 根据预先配置的授权目标策略选择网站，实时运行后返回本次 JSON；目标必须在执行主机上可达。
+- [云端实时 API 部署步骤](docs/deploy-live-api.md)：将巡检 API 部署为 HTTPS Web Service，并将恒脑工具改为调用本次扫描接口。

@@ -1,0 +1,50 @@
+name: Scan public Firing Range testbed
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/scan-firing-range.yml
+      - prototype/local_scan.py
+      - scan-public-policy.firing-range.json
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: firing-range-results
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          path: source
+      - uses: actions/checkout@v6
+        with:
+          ref: scan-results
+          path: published
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Request only the allowlisted testbed page
+        run: |
+          mkdir -p published/results
+          python source/prototype/local_scan.py \
+            --policy source/scan-public-policy.firing-range.json \
+            --baseline published/results/baseline.json \
+            --output published/results/latest.json \
+            --report published/results/latest.html \
+            --history published/results/history.jsonl
+      - name: Publish report to scan-results branch
+        run: |
+          git -C published config user.name 'github-actions[bot]'
+          git -C published config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git -C published add results/baseline.json results/latest.json results/latest.html results/history.jsonl
+          if ! git -C published diff --cached --quiet; then
+            git -C published commit -m 'Update public testbed scan result'
+            git -C published push origin HEAD:scan-results
+          fi

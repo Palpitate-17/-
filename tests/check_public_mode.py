@@ -14,6 +14,10 @@ import vuln_intel  # noqa: E402
 pages_policy = local_scan.load_policy(ROOT / "scan-public-policy.github-pages.json")
 assert pages_policy["target_url"] == "https://palpitate-17.github.io/-/"
 assert pages_policy["allowed_paths"] == {"/-/", "/-/about.html", "/-/public/config.txt"}
+testbed_policy = local_scan.load_policy(ROOT / "scan-public-policy.firing-range.json")
+assert testbed_policy["target_url"] == "https://public-firing-range.appspot.com/"
+assert testbed_policy["allowed_paths"] == {"/"}
+assert testbed_policy["data_kind"] == "public_scanner_testbed"
 
 
 class FakeResponse:

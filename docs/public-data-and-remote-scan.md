@@ -1,6 +1,6 @@
 # 公开数据与远端巡检路线
 
-截至 2026-10-12，团队尚无获授权的业务站点和常驻服务器。当前已完成本地演示站的实际 HTTP 巡检；本文件中的公开站点模式尚未在团队自有 HTTPS 站点验证。公开可读的网站或数据集不自动成为允许主动巡检的目标。
+团队尚无获授权的业务站点和常驻服务器。当前已完成本地演示站的实际 HTTP 巡检。公开可读的网站或数据集不自动成为允许主动巡检的目标。
 
 ## 数据源各自的用途
 
@@ -11,11 +11,11 @@
 | [OSV API](https://google.github.io/osv.dev/api/) | 查询给定生态、包名、版本的公开漏洞记录 | 给明确识别的组件版本补充情报 | 不从网页文字猜测实际安装版本；命中不等于网站可利用 |
 | [CISA KEV](https://github.com/cisagov/kev-data) | 标记已知被利用的 CVE | 对 OSV 命中做优先级提示 | KEV 不证明该站点部署了受影响组件 |
 
-CNVD/CNNVD 同样可以作为漏洞情报的参考来源，不能把其记录涉及的站点当成自动扫描授权。若需要公共练习目标，[PortSwigger Web Security Academy](https://portswigger.net/web-security) 提供专门的在线实验环境；但单个实验环境有独立的目标与生命周期，应先按其规则操作，不把它当作长期定时巡检站点。作品的长期演示目标选择团队自己的 Pages 站点。
+CNVD/CNNVD 同样可以作为漏洞情报的参考来源，不能把其记录涉及的站点当成自动扫描授权。[Google Firing Range](https://github.com/google/firing-range) 官方明确称其公开实例是供 Web 安全扫描器测试的靶场，因此本仓库只对其首页做低频、只读巡检。该站不是团队自建站，也不是业务网站。若需要交互练习，[PortSwigger Web Security Academy](https://portswigger.net/web-security) 提供专门的在线实验环境；单个实验环境有独立生命周期，不适合长期定时巡检。
 
 ## 已做的能力
 
-`prototype/local_scan.py` 现在接受两种策略。默认 `scan-policy.json` 仍只允许本地演示站。公开站点需要单独复制 `scan-public-policy.example.json`，填写团队控制或获得明确授权的精确 HTTPS 域名和路径。程序只请求最多 10 条白名单路径，不跟随跳转；公共 DNS 解析结果必须都是公网地址，并在连接时固定已检查的 IP，TLS 证书仍按原域名校验。每次最多读取每页 256 KiB，超时 3 秒。策略中的 `data_kind` 要如实填写：公开虚构演示站用 `public_synthetic_demo`，获授权真实业务站用 `authorized_public_site`。
+`prototype/local_scan.py` 现在接受两种策略。默认 `scan-policy.json` 仍只允许本地演示站。公开站点需要单独复制 `scan-public-policy.example.json`，填写团队控制或获得明确授权的精确 HTTPS 域名和路径。程序只请求最多 10 条白名单路径，不跟随跳转；公共 DNS 解析结果必须都是公网地址，并在连接时固定已检查的 IP，TLS 证书仍按原域名校验。每次最多读取每页 256 KiB，超时 3 秒。策略中的 `data_kind` 要如实填写：团队公开虚构演示站用 `public_synthetic_demo`，公开扫描器靶场用 `public_scanner_testbed`，获授权真实业务站用 `authorized_public_site`。
 
 在仓库根目录运行：
 
@@ -25,7 +25,7 @@ Copy-Item -LiteralPath scan-public-policy.example.json -Destination scan-public-
 & 'D:\AI\environ\python.exe' prototype\local_scan.py --policy scan-public-policy.json --baseline .public-baseline.json --output public-result.json --report public-report.html --history public-history.jsonl
 ```
 
-这仍是在执行命令的机器上运行。若要摆脱本机与 Quick Tunnel，下一步用 GitHub Actions 或团队服务器运行同一命令；恒脑读取其 HTTPS JSON 结果。GitHub Pages 可托管团队自建演示站和静态结果，但它本身不能处理当前的 `POST /scan`。因此恒脑工具届时需要改成读取静态 JSON 的 GET 接口，或接入真正的云端 API。仅把本机扫描脚本指向公开域名并不能解决本机依赖。
+这仍是在执行命令的机器上运行。仓库另有 `Scan public Firing Range testbed` 工作流，在 GitHub Actions 运行器请求公开靶场首页，并把结果写入 `scan-results` 分支。恒脑可 GET `https://raw.githubusercontent.com/Palpitate-17/-/scan-results/results/latest.json` 读取最近一次结果；这不是实时 POST 扫描 API。若想在恒脑触发实时扫描，仍需要常驻云端 API 服务。
 
 ## OSV 与 KEV 查询
 
@@ -39,11 +39,11 @@ Copy-Item -LiteralPath scan-public-policy.example.json -Destination scan-public-
 
 ## 下一步验收
 
-1. 由团队控制的 HTTPS 测试站上线，并取得项目组对精确域名和路径的同意；把虚构测试页面放在那里。
-2. 用单独策略在该站做首次和修改后的复测，检查 `findings`、`resolved_findings`、`changes` 是否符合预期。
-3. 在 GitHub Actions 或云主机重跑同一策略，保存 JSON/HTML 结果和执行日志；再让恒脑读取稳定 HTTPS 地址，关闭本机 API 和 Quick Tunnel 后复测。
+1. 确认 GitHub Actions 中 `Scan public Firing Range testbed` 成功，`scan-results` 分支出现 `results/latest.json`；核对请求页数和靶场域名。
+2. 恒脑新增 GET 工具读取上述 JSON，在本机 API 与 Quick Tunnel 关闭的情况下复测；报告应标为“公开测试靶场”，不写真实业务风险。
+3. 要演示可控的“新增、消失、变化”，继续使用团队自己的本地虚构站；若以后有自有公开站，再迁移到 HTTPS 环境。
 4. 将 OSV/KEV 数据作为独立的“组件情报”章节，前提是拿到准确的包与版本证据。
 
 ## 团队 GitHub Pages 云端演示准备
 
-仓库中已准备 `public_demo/` 虚构网站、`scan-public-policy.github-pages.json` 和两个 GitHub Actions 工作流。合并到默认分支后，由有仓库管理权限的队员在 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions**。`Publish synthetic demo site` 工作流先发布 `https://palpitate-17.github.io/-/`；确认其可访问后，手动运行 `Scan synthetic demo from GitHub Actions`。后者从 GitHub 托管的运行器实际请求该 HTTPS 网站，并发布 `https://palpitate-17.github.io/-/results/latest.json`。恒脑届时可用 GET 读取此 JSON；它不是实时扫描 API，扫描发生在工作流运行时。两个工作流目前仅在分支中准备，尚未发布，也尚未完成线上实测。
+仓库中也准备了 `public_demo/` 虚构网站及 GitHub Pages 工作流，但首次自动发布因仓库未启用 Pages 而失败。Pages 工作流改为手动触发，不影响上述 Firing Range 方案。只有具备仓库 admin/maintainer 权限的人在 **Settings → Pages → Build and deployment → Source** 选择 **GitHub Actions** 后，才能发布团队自建 HTTPS 演示站。

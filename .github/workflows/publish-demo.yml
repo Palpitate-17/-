@@ -1,11 +1,6 @@
 name: Publish synthetic demo site
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - public_demo/**
-      - .github/workflows/publish-demo.yml
   workflow_dispatch:
 
 permissions:

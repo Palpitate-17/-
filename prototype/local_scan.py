@@ -77,7 +77,7 @@ def load_policy(path=DEFAULT_POLICY):
                 or any(part in (".", "..") for part in target.path.split("/"))):
             raise ValueError("Public target must be an exact HTTPS site root")
         data_kind = policy.get("data_kind")
-        if data_kind not in ("public_synthetic_demo", "authorized_public_site"):
+        if data_kind not in ("public_synthetic_demo", "public_scanner_testbed", "authorized_public_site"):
             raise ValueError("Public policy needs an explicit data_kind")
     else:
         raise ValueError("Unknown scan mode")
@@ -247,6 +247,9 @@ def html_report(result):
     elif data_kind == "public_synthetic_demo":
         title = "公开演示站巡检报告"
         note = "访问了团队自建的公开演示站；页面和凭据均为演示数据，规则命中未经真实风险验证。"
+    elif data_kind == "public_scanner_testbed":
+        title = "公开测试靶场巡检报告"
+        note = "访问了公开供扫描器测试的靶场；本报告只覆盖策略允许的路径，规则命中不代表真实业务风险。"
     else:
         title = "授权站点巡检报告"
         note = "仅访问策略允许的路径；规则命中与内容变化均需进一步核实。"

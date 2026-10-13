@@ -11,6 +11,10 @@ sys.path.insert(0, str(ROOT / "prototype"))
 import local_scan  # noqa: E402
 import vuln_intel  # noqa: E402
 
+pages_policy = local_scan.load_policy(ROOT / "scan-public-policy.github-pages.json")
+assert pages_policy["target_url"] == "https://palpitate-17.github.io/-/"
+assert pages_policy["allowed_paths"] == {"/-/", "/-/about.html", "/-/public/config.txt"}
+
 
 class FakeResponse:
     status = 200

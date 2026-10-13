@@ -12,4 +12,4 @@
 - [10 月 25 日提交推进表](docs/submission-plan.md)：按比赛材料列出当前缺口、完成顺序和必交文件。
 - [作品报告内容初稿](docs/competition-report-draft.md)：按附件5章节撰写已验证的离线 MVP，标明待核对内容。
 - [恒脑当前工作流提示词](docs/hengnao-current-prompt.md)：按 API 字段区分当前发现、已消失条目、内容变化和被动配置观察。
-- [公开数据与远端巡检路线](docs/public-data-and-remote-scan.md)：新增限域 HTTPS 巡检模式及 OSV/CISA 漏洞情报查询；尚未对公开站点执行验证。
+- [公开数据与远端巡检路线](docs/public-data-and-remote-scan.md)：限域 HTTPS 巡检、OSV/CISA 漏洞情报，以及待上线的 GitHub Pages + Actions 演示；尚未对公开站点执行验证。

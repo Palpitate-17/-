@@ -1,0 +1,2 @@
+# Synthetic data for the team's own Pages demo; no real credentials.
+api_key=DEMO-ONLY-12345

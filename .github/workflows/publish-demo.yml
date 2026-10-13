@@ -1,0 +1,40 @@
+name: Publish synthetic demo site
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - public_demo/**
+      - .github/workflows/publish-demo.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages-demo
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/configure-pages@v5
+      - name: Prepare demo site
+        run: |
+          mkdir -p site/results
+          cp -R public_demo/. site/
+          curl -fsS --max-time 10 'https://palpitate-17.github.io/-/results/latest.json' -o site/results/latest.json || rm -f site/results/latest.json
+          curl -fsS --max-time 10 'https://palpitate-17.github.io/-/results/latest.html' -o site/results/latest.html || rm -f site/results/latest.html
+          curl -fsS --max-time 10 'https://palpitate-17.github.io/-/results/baseline.json' -o site/results/baseline.json || rm -f site/results/baseline.json
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4

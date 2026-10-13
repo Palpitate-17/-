@@ -1,0 +1,45 @@
+name: Scan synthetic demo from GitHub Actions
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages-demo
+  cancel-in-progress: false
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - uses: actions/configure-pages@v5
+      - name: Prepare previous baseline
+        run: |
+          mkdir -p site/results
+          cp -R public_demo/. site/
+          curl -fsS --max-time 10 'https://palpitate-17.github.io/-/results/baseline.json' -o .public-baseline.json || rm -f .public-baseline.json
+      - name: Request the published demo and generate report
+        run: |
+          python prototype/local_scan.py \
+            --policy scan-public-policy.github-pages.json \
+            --baseline .public-baseline.json \
+            --output site/results/latest.json \
+            --report site/results/latest.html \
+            --history site/results/history.jsonl
+          cp .public-baseline.json site/results/baseline.json
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+      - id: deployment
+        uses: actions/deploy-pages@v4

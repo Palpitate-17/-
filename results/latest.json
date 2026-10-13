@@ -1,5 +1,5 @@
 {
-  "scan_id": "2026-10-13T20:52:50.295861+00:00",
+  "scan_id": "2026-10-13T21:43:41.854113+00:00",
   "simulated": false,
   "data_kind": "public_scanner_testbed",
   "target_url": "https://public-firing-range.appspot.com/",
@@ -7,9 +7,27 @@
     {
       "url": "https://public-firing-range.appspot.com/",
       "status": 200
+    },
+    {
+      "url": "https://public-firing-range.appspot.com/clickjacking/index.html",
+      "status": 200
+    },
+    {
+      "url": "https://public-firing-range.appspot.com/mixedcontent/index.html",
+      "status": 200
     }
   ],
-  "findings": [],
+  "findings": [
+    {
+      "category": "mixed_content",
+      "url": "https://public-firing-range.appspot.com/mixedcontent/index.html",
+      "evidence_masked": "HTTPS page loads a script over HTTP",
+      "verification": "pending",
+      "severity": "pending",
+      "potential_impact": "HTTP 脚本传输可能被篡改，是否可利用仍需复核。",
+      "remediation_if_confirmed": "改用 HTTPS 加载脚本并复查资源来源。"
+    }
+  ],
   "resolved_findings": [],
   "changes": [],
   "tool_checks": [

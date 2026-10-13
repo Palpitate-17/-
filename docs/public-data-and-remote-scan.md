@@ -11,7 +11,7 @@
 | [OSV API](https://google.github.io/osv.dev/api/) | 查询给定生态、包名、版本的公开漏洞记录 | 给明确识别的组件版本补充情报 | 不从网页文字猜测实际安装版本；命中不等于网站可利用 |
 | [CISA KEV](https://github.com/cisagov/kev-data) | 标记已知被利用的 CVE | 对 OSV 命中做优先级提示 | KEV 不证明该站点部署了受影响组件 |
 
-CNVD/CNNVD 同样可以作为漏洞情报的参考来源，不能把其记录涉及的站点当成自动扫描授权。[Google Firing Range](https://github.com/google/firing-range) 官方明确称其公开实例是供 Web 安全扫描器测试的靶场，因此本仓库只对其首页做低频、只读巡检。该站不是团队自建站，也不是业务网站。若需要交互练习，[PortSwigger Web Security Academy](https://portswigger.net/web-security) 提供专门的在线实验环境；单个实验环境有独立生命周期，不适合长期定时巡检。
+CNVD/CNNVD 同样可以作为漏洞情报的参考来源，不能把其记录涉及的站点当成自动扫描授权。[Google Firing Range](https://github.com/google/firing-range) 官方明确称其公开实例是供 Web 安全扫描器测试的靶场，因此本仓库只对其首页、`/mixedcontent/index.html` 和 `/clickjacking/index.html` 做低频、只读巡检；混合内容只在实际页面包含 HTTP 脚本时报告，结论保留待核实。该站不是团队自建站，也不是业务网站。若需要交互练习，[PortSwigger Web Security Academy](https://portswigger.net/web-security) 提供专门的在线实验环境；单个实验环境有独立生命周期，不适合长期定时巡检。
 
 ## 已做的能力
 
@@ -25,7 +25,7 @@ Copy-Item -LiteralPath scan-public-policy.example.json -Destination scan-public-
 & 'D:\AI\environ\python.exe' prototype\local_scan.py --policy scan-public-policy.json --baseline .public-baseline.json --output public-result.json --report public-report.html --history public-history.jsonl
 ```
 
-这仍是在执行命令的机器上运行。仓库另有 `Scan public Firing Range testbed` 工作流，在 GitHub Actions 运行器每天 03:00 UTC 请求公开靶场首页，并把结果写入 `scan-results` 分支；也可在 Actions 页面手动运行。首次云端运行于 2026-10-14 成功：HTTP 200、读取 1 页、0 条规则发现、1 条响应头配置观察。恒脑可 GET `https://raw.githubusercontent.com/Palpitate-17/-/scan-results/results/latest.json` 读取最近一次结果；这不是实时 POST 扫描 API。若想在恒脑触发实时扫描，仍需要常驻云端 API 服务。
+这仍是在执行命令的机器上运行。仓库另有 `Scan public Firing Range testbed` 工作流，在 GitHub Actions 运行器每天 03:00 UTC 请求策略中允许的公开靶场页面，并把结果写入 `scan-results` 分支；也可在 Actions 页面手动运行。首次云端运行于 2026-10-14 成功：HTTP 200、读取 1 页、0 条规则发现、1 条响应头配置观察。恒脑可 GET `https://raw.githubusercontent.com/Palpitate-17/-/scan-results/results/latest.json` 读取最近一次结果；这不是实时 POST 扫描 API。若想在恒脑触发实时扫描，仍需要常驻云端 API 服务。
 
 ## OSV 与 KEV 查询
 

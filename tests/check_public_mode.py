@@ -16,7 +16,7 @@ assert pages_policy["target_url"] == "https://palpitate-17.github.io/-/"
 assert pages_policy["allowed_paths"] == {"/-/", "/-/about.html", "/-/public/config.txt"}
 testbed_policy = local_scan.load_policy(ROOT / "scan-public-policy.firing-range.json")
 assert testbed_policy["target_url"] == "https://public-firing-range.appspot.com/"
-assert testbed_policy["allowed_paths"] == {"/"}
+assert testbed_policy["allowed_paths"] == {"/", "/mixedcontent/index.html", "/clickjacking/index.html"}
 assert testbed_policy["data_kind"] == "public_scanner_testbed"
 
 
@@ -28,7 +28,9 @@ class FakeResponse:
 
     def read(self, _):
         if self.path == "/demo/":
-            return b'<a href="/demo/config.txt">config</a><a href="https://elsewhere.test/">other</a>'
+            return (b'<a href="/demo/config.txt">config</a>'
+                    b'<a href="https://elsewhere.test/">other</a>'
+                    b'<script src="http://cdn.example/script.js"></script>')
         return b"api_key=DEMO-ONLY-12345"
 
     def getheader(self, *_):
@@ -67,7 +69,8 @@ with tempfile.TemporaryDirectory() as temporary:
          patch.object(local_scan, "probe_headers", return_value={"status": "ok", "observations": []}):
         result = local_scan.scan(policy["target_url"], root / "baseline.json", loaded)
     assert FakeConnection.paths == ["/demo/", "/demo/config.txt"]
-    assert len(result["findings"]) == 1
+    assert len(result["findings"]) == 2
+    assert {item["category"] for item in result["findings"]} == {"sensitive_exposure", "mixed_content"}
     assert "DEMO-ONLY" not in json.dumps(result)
     assert result["data_kind"] == "public_synthetic_demo"
     assert "公开演示站" in local_scan.html_report(result)

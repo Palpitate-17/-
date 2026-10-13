@@ -111,10 +111,14 @@ class Links(HTMLParser):
     def __init__(self):
         super().__init__()
         self.hrefs = []
+        self.insecure_scripts = []
 
     def handle_starttag(self, tag, attrs):
         if tag == "a":
             self.hrefs.extend(value for key, value in attrs if key == "href" and value)
+        if tag == "script":
+            self.insecure_scripts.extend(value for key, value in attrs
+                                         if key == "src" and value and value.lower().startswith("http://"))
 
 
 def probe_headers(target_url, raw_output_path, resolved_ip=None):
@@ -213,6 +217,12 @@ def scan(target_url, baseline_path, policy=None):
         if "text/html" in content_type:
             links = Links()
             links.feed(text)
+            if target.scheme == "https" and links.insecure_scripts:
+                findings.append({"category": "mixed_content", "url": url,
+                                 "evidence_masked": "HTTPS page loads a script over HTTP",
+                                 "verification": "pending", "severity": "pending",
+                                 "potential_impact": "HTTP 脚本传输可能被篡改，是否可利用仍需复核。",
+                                 "remediation_if_confirmed": "改用 HTTPS 加载脚本并复查资源来源。"})
             for href in links.hrefs:
                 try:
                     candidate = urlsplit(urljoin(url, href))

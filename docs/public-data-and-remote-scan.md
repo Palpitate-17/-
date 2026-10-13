@@ -25,7 +25,7 @@ Copy-Item -LiteralPath scan-public-policy.example.json -Destination scan-public-
 & 'D:\AI\environ\python.exe' prototype\local_scan.py --policy scan-public-policy.json --baseline .public-baseline.json --output public-result.json --report public-report.html --history public-history.jsonl
 ```
 
-这仍是在执行命令的机器上运行。仓库另有 `Scan public Firing Range testbed` 工作流，在 GitHub Actions 运行器请求公开靶场首页，并把结果写入 `scan-results` 分支。恒脑可 GET `https://raw.githubusercontent.com/Palpitate-17/-/scan-results/results/latest.json` 读取最近一次结果；这不是实时 POST 扫描 API。若想在恒脑触发实时扫描，仍需要常驻云端 API 服务。
+这仍是在执行命令的机器上运行。仓库另有 `Scan public Firing Range testbed` 工作流，在 GitHub Actions 运行器每天 03:00 UTC 请求公开靶场首页，并把结果写入 `scan-results` 分支；也可在 Actions 页面手动运行。首次云端运行于 2026-10-14 成功：HTTP 200、读取 1 页、0 条规则发现、1 条响应头配置观察。恒脑可 GET `https://raw.githubusercontent.com/Palpitate-17/-/scan-results/results/latest.json` 读取最近一次结果；这不是实时 POST 扫描 API。若想在恒脑触发实时扫描，仍需要常驻云端 API 服务。
 
 ## OSV 与 KEV 查询
 

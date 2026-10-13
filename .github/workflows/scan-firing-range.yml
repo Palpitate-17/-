@@ -7,6 +7,8 @@ on:
       - .github/workflows/scan-firing-range.yml
       - prototype/local_scan.py
       - scan-public-policy.firing-range.json
+  schedule:
+    - cron: '0 3 * * *'
   workflow_dispatch:
 
 permissions:

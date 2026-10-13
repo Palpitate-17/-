@@ -1,0 +1,36 @@
+{
+  "scan_id": "2026-10-13T20:50:30.915314+00:00",
+  "simulated": false,
+  "data_kind": "public_scanner_testbed",
+  "target_url": "https://public-firing-range.appspot.com/",
+  "pages": [
+    {
+      "url": "https://public-firing-range.appspot.com/",
+      "status": 200
+    }
+  ],
+  "findings": [],
+  "resolved_findings": [],
+  "changes": [],
+  "tool_checks": [
+    {
+      "tool": "curl",
+      "status": "ok",
+      "method": "HEAD",
+      "url": "https://public-firing-range.appspot.com/",
+      "raw_output_file": ".curl-headers.txt",
+      "http_status": 200,
+      "observations": [
+        {
+          "category": "missing_security_header",
+          "url": "https://public-firing-range.appspot.com/",
+          "evidence_masked": "X-Content-Type-Options header absent",
+          "verification": "pending",
+          "severity": "pending",
+          "potential_impact": "缺少该响应头可能允许浏览器进行 MIME 嗅探；是否影响实际业务需结合内容类型核实。",
+          "remediation_if_confirmed": "若需禁止 MIME 嗅探，在对应响应中设置 X-Content-Type-Options: nosniff 并复查。"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8">
+<title>公开测试靶场巡检报告</title><style>body{font:16px/1.6 sans-serif;max-width:900px;margin:2em auto;padding:0 1em}
+li{overflow-wrap:anywhere}.note{background:#eef5ff;padding:1em}</style>
+<h1>公开测试靶场巡检报告</h1><p class="note">访问了公开供扫描器测试的靶场；本报告只覆盖策略允许的路径，规则命中不代表真实业务风险。</p>
+<p>目标：https://public-firing-range.appspot.com/<br>时间（UTC）：2026-10-13T20:50:30.915314+00:00<br>
+读取页面：1</p>
+<h2>当前发现（0）</h2><ul><li>无</li></ul>
+<h2>本次已消失（0）</h2><ul><li>无</li></ul>
+<h2>内容变化（0）</h2><ul><li>无</li></ul>
+<h2>被动配置观察</h2><p>curl HEAD：ok；
+缺少响应头仅为配置观察，是否构成风险仍需核实。</p>
+<ul><li>https://public-firing-range.appspot.com/: X-Content-Type-Options header absent<br>潜在影响：缺少该响应头可能允许浏览器进行 MIME 嗅探；是否影响实际业务需结合内容类型核实。<br>核实后建议：若需禁止 MIME 嗅探，在对应响应中设置 X-Content-Type-Options: nosniff 并复查。</li></ul>
+</html>

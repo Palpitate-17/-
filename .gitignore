@@ -3,6 +3,7 @@ demo-result.json
 demo-report.html
 demo-history.jsonl
 .local-api-key
+.live-scans/
 .curl-headers.txt
 scan-public-policy.json
 .public-baseline.json

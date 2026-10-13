@@ -11,6 +11,7 @@ from http.client import HTTPConnection
 from http.server import HTTPServer, SimpleHTTPRequestHandler
 from pathlib import Path
 from threading import Thread
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "prototype"))
@@ -122,6 +123,21 @@ with tempfile.TemporaryDirectory() as temp:
             raise AssertionError("External target accepted")
         except ValueError:
             pass
+        public = api.load_policy(ROOT / "scan-public-policy.firing-range.json")
+        other = dict(public, target_url="https://owned.example/")
+        api.ACTIVE_POLICIES = [public, other]
+        api.LAST_PUBLIC_SCAN.clear()
+        with patch.object(api, "scan", side_effect=lambda target, baseline, selected: {"target_url": selected["target_url"]}) as scan_call, \
+             patch.object(api, "save_result"), \
+             patch.object(api, "result_paths", return_value=(root / "baseline", root / "result", root / "report", root / "history")):
+            assert post(port, api.API_KEY, "https://unlisted.example/")[0] == 400
+            status, body = post(port, api.API_KEY, public["target_url"])
+            assert status == 200 and body["target_url"] == public["target_url"]
+            assert post(port, api.API_KEY, public["target_url"])[0] == 429
+            status, body = post(port, api.API_KEY, other["target_url"])
+            assert status == 200 and body["target_url"] == other["target_url"]
+            assert scan_call.call_count == 2
+        api.ACTIVE_POLICIES = None
         print("Local API check passed")
     finally:
         endpoint.shutdown()

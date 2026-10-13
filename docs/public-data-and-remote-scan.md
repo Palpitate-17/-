@@ -27,6 +27,25 @@ Copy-Item -LiteralPath scan-public-policy.example.json -Destination scan-public-
 
 这仍是在执行命令的机器上运行。仓库另有 `Scan public Firing Range testbed` 工作流，在 GitHub Actions 运行器每天 03:00 UTC 请求策略中允许的公开靶场页面，并把结果写入 `scan-results` 分支；也可在 Actions 页面手动运行。首次云端运行于 2026-10-14 成功：HTTP 200、读取 1 页、0 条规则发现、1 条响应头配置观察。恒脑可 GET `https://raw.githubusercontent.com/Palpitate-17/-/scan-results/results/latest.json` 读取最近一次结果；这不是实时 POST 扫描 API。若想在恒脑触发实时扫描，仍需要常驻云端 API 服务。
 
+## 恒脑输入网址后立即巡检
+
+现有 `prototype/local_scan_api.py` 也可按请求中的 `target_url` 选择策略并实时巡检。每个允许的站点必须事先有独立的策略文件；输入网址与策略中的 `target_url` 完全一致才会扫描，不能把任意公开网站当成自动获授权目标。公开目标还有策略指定的最短扫描间隔。结果按目标分别存到被 Git 忽略的 `.live-scans/`，避免基线串站。
+
+在仓库根目录启动 API（已有 `.local-api-key` 时复用，不要把密钥发给别人）：
+
+```powershell
+& 'D:\AI\environ\python.exe' prototype\local_scan_api.py --policy scan-public-policy.firing-range.json
+```
+
+另开 PowerShell 窗口试运行；这是本次请求的输入，不是读取 GitHub 上次的结果：
+
+```powershell
+$scanKey = (Get-Content -LiteralPath .local-api-key -Raw).Trim()
+Invoke-RestMethod -Method Post -Uri 'http://127.0.0.1:8001/scan' -Headers @{ 'X-API-Key' = $scanKey } -ContentType 'application/json' -Body '{"target_url":"https://public-firing-range.appspot.com/"}' | ConvertTo-Json -Depth 10
+```
+
+恒脑原有 POST `/scan` 工具的 `target_url` 输入参数应**引用开始节点输入的网址**，不能留固定默认值；模型继续读取该工具的 `result_key`。若需要第二个获授权目标，复制 `scan-public-policy.example.json` 为本地策略文件，填写精确 HTTPS 站点根地址和允许的路径，再用第二个 `--policy` 参数启动 API。API 仍运行在本机，恒脑需要可访问的 HTTPS 转发地址；Quick Tunnel 断开就会停止联调，正式交付需要稳定托管。执行 API 的机器还必须能直接访问目标：2026-10-14 在本机对 Firing Range 的直接连接超时，云端 GitHub Actions 则已成功巡检；单纯增加隧道不能解决本机到目标的出站连通问题。`GET /health` 只检查 API 在线，不代表目标可达。
+
 ## OSV 与 KEV 查询
 
 已知准确包名和版本时，可以查询公开漏洞库。以下是**数据库功能演示**，不代表本项目网站部署了 Jinja2：

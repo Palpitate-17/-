@@ -1,0 +1,15 @@
+# 自定义敏感词示例：本文件不由默认规则加载器自动加载，启用前按业务审核。
+version: 1
+rules:
+  - id: INTERNAL_PROJECT_KEYWORD
+    name: 内部项目关键词
+    description: 页面出现业务定义为非公开的内部关键词候选
+    match_type: keyword
+    keywords:
+      - '合成内部代号甲'
+    severity: medium
+    mask: full
+    exclude_values: []
+    exclude_context_regex: []
+    enabled: false
+    remediation: 核对公开性策略；确认非公开后撤下并检查发布审批。

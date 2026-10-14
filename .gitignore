@@ -12,3 +12,6 @@ public-history.jsonl
 vuln-intel.json
 .osv-demo.json
 __pycache__/
+.venv/
+.team-baseline.json
+wheelhouse/

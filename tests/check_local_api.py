@@ -54,11 +54,13 @@ with tempfile.TemporaryDirectory() as temp:
         assert post(port, "wrong", target_url)[0] == 401
         assert post(port, api.API_KEY, "https://example.com/")[0] == 400
         status, first = post(port, api.API_KEY, target_url)
-        assert status == 200 and len(first["pages"]) == 3 and len(first["findings"]) == 1
+        assert status == 200 and len(first["pages"]) == 3
+        assert sum(item["category"] == "sensitive_exposure" for item in first["findings"]) == 1
+        assert sum(item["category"] == "weak_configuration" for item in first["findings"]) == 2
+        assert len(first["module_runs"]) == 15
         assert "DEMO-ONLY-12345" not in json.dumps(first)
-        assert first["findings"][0]["verification"] == first["findings"][0]["severity"] == "pending"
-        assert first["findings"][0]["potential_impact"]
-        assert first["findings"][0]["remediation_if_confirmed"]
+        assert all(item["verification"] == item["severity"] == "pending" for item in first["findings"])
+        assert all(item["potential_impact"] and item["remediation_if_confirmed"] for item in first["findings"])
         assert first["tool_checks"][0]["status"] == "ok"
         assert first["tool_checks"][0]["http_status"] == 200
         assert first["tool_checks"][0]["observations"][0]["category"] == "missing_security_header"
@@ -70,7 +72,8 @@ with tempfile.TemporaryDirectory() as temp:
             page.write_bytes(body.replace(b"\r\n", b"\n") if b"\r\n" in body else body.replace(b"\n", b"\r\n"))
         config.write_text("# issue removed\n", encoding="utf-8")
         status, second = post(port, api.API_KEY, target_url)
-        assert status == 200 and len(second["findings"]) == 0
+        assert status == 200 and len(second["findings"]) == 2
+        assert all(item["category"] == "weak_configuration" for item in second["findings"])
         assert len(second["resolved_findings"]) == len(second["changes"]) == 1
         assert second["resolved_findings"][0]["resolution_status"] == "rule_no_longer_matched"
         assert "不证明" in second["changes"][0]["interpretation"]
@@ -79,7 +82,7 @@ with tempfile.TemporaryDirectory() as temp:
         assert "核实后建议" in api.REPORT.read_text(encoding="utf-8")
         history = [json.loads(line) for line in api.HISTORY.read_text(encoding="utf-8").splitlines()]
         assert len(history) == 2
-        assert [entry["findings"] for entry in history] == [1, 0]
+        assert [entry["findings"] for entry in history] == [3, 2]
         assert [entry["resolved_findings"] for entry in history] == [0, 1]
         assert "DEMO-ONLY-12345" not in api.HISTORY.read_text(encoding="utf-8")
         interval_history = root / "interval-history.jsonl"
@@ -113,7 +116,8 @@ with tempfile.TemporaryDirectory() as temp:
         policy_file.write_text(json.dumps(policy), encoding="utf-8")
         api.POLICY = api.load_policy(policy_file)
         status, custom = post(port, api.API_KEY, target_url)
-        assert status == 200 and custom["findings"][0]["evidence_masked"] == "demo_code=[REDACTED]"
+        assert status == 200 and any(item["evidence_masked"] == "demo_code=[REDACTED]"
+                                     for item in custom["findings"])
         assert "DEMO-ONLY-12345" not in json.dumps(custom)
         policy["target_url"] = "https://example.com/"
         policy_file.write_text(json.dumps(policy), encoding="utf-8")

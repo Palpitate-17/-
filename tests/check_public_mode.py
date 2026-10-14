@@ -30,6 +30,9 @@ class FakeResponse:
     def getheader(self, *_):
         return "text/html" if self.path == "/demo/" else "text/plain"
 
+    def getheaders(self):
+        return [("Content-Type", self.getheader("Content-Type"))]
+
 
 class FakeConnection:
     paths = []
@@ -54,7 +57,7 @@ with tempfile.TemporaryDirectory() as temporary:
     policy = json.loads((ROOT / "scan-policy.json").read_text(encoding="utf-8"))
     policy.update(mode="public_https", data_kind="public_synthetic_demo",
                   target_url="https://owned.example/demo/",
-                  allowed_paths=["/demo/", "/demo/config.txt"])
+                  allowed_paths=["/demo/", "/demo/config.txt"], team_modules=[])
     path = root / "policy.json"
     path.write_text(json.dumps(policy), encoding="utf-8")
     loaded = local_scan.load_policy(path)

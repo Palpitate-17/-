@@ -102,9 +102,26 @@ def load_policy(path=DEFAULT_POLICY):
                 or not rule["pattern"] or len(rule["pattern"]) > 500):
             raise ValueError("Each sensitive rule needs a name and pattern")
         compiled.append((rule["name"], re.compile(rule["pattern"], re.I)))
+    team_modules = policy.get("team_modules", [])
+    allowed_modules = {"sensitive", "encoded_secret", "baseline", "external_links", "weak_configuration"}
+    if (not isinstance(team_modules, list)
+            or any(not isinstance(item, str) or item not in allowed_modules for item in team_modules)
+            or len(set(team_modules)) != len(team_modules)):
+        raise ValueError("team_modules must be a distinct list of supported offline modules")
+    ignore_selectors = policy.get("baseline_ignore_selectors", ['[data-ignore="dynamic"]'])
+    blocklist = policy.get("external_link_blocklist", [])
+    if (not isinstance(ignore_selectors, list) or len(ignore_selectors) > 20
+            or any(not isinstance(item, str) or not item.strip() or len(item) > 200 for item in ignore_selectors)):
+        raise ValueError("baseline_ignore_selectors must contain up to 20 CSS selectors")
+    if (not isinstance(blocklist, list) or len(blocklist) > 100
+            or any(not isinstance(item, str) or not re.fullmatch(r"[A-Za-z0-9.-]+", item)
+                   for item in blocklist)):
+        raise ValueError("external_link_blocklist must contain plain DNS hostnames")
     return {"target_url": policy["target_url"], "allowed_paths": set(paths),
             "interval_seconds": interval, "sensitive_rules": compiled,
-            "mode": mode, "data_kind": data_kind}
+            "mode": mode, "data_kind": data_kind, "team_modules": team_modules,
+            "baseline_ignore_selectors": ignore_selectors,
+            "external_link_blocklist": blocklist}
 
 
 class Links(HTMLParser):
@@ -164,6 +181,11 @@ def scan(target_url, baseline_path, policy=None):
     saved = json.loads(baseline_path.read_text(encoding="utf-8")) if baseline_path.exists() else {}
     old = saved.get("hashes", saved)
     previous = saved.get("active_findings", [])
+    team_baselines = saved.get("team_baselines", {})
+    module_runs = []
+    if policy["team_modules"]:
+        from team_checks import analyze_page, load_team_rules
+        team_rules = load_team_rules() if "sensitive" in policy["team_modules"] else []
     new, pages, findings, changes = {}, [], [], []
     queue, seen = deque([target_url]), set()
 
@@ -183,6 +205,10 @@ def scan(target_url, baseline_path, policy=None):
             status = response.status
             body = response.read(MAX_BYTES + 1)
             content_type = response.getheader("Content-Type", "")
+            headers = {}
+            for key, value in response.getheaders():
+                key = key.lower()
+                headers[key] = headers.get(key, "") + ("\n" if key in headers else "") + value
         finally:
             connection.close()
         if len(body) > MAX_BYTES:
@@ -191,6 +217,18 @@ def scan(target_url, baseline_path, policy=None):
         if status != 200 or not ("text/html" in content_type or "text/plain" in content_type):
             continue
         text = body.decode("utf-8", errors="replace")
+        if policy["team_modules"]:
+            team_findings, team_baseline, runs = analyze_page(
+                url=url, status=status, content_type=content_type, body=text,
+                headers=headers, policy=policy, previous_baseline=team_baselines.get(url),
+                rules=team_rules,
+            )
+            for item in team_findings:
+                if item not in findings:
+                    findings.append(item)
+            if team_baseline is not None and url not in team_baselines:
+                team_baselines[url] = team_baseline
+            module_runs.extend({**run, "url": url} for run in runs)
         # Text line endings may change on Git checkout without changing page content.
         digest = sha256(body.replace(b"\r\n", b"\n")).hexdigest()
         raw_digest = sha256(body).hexdigest()
@@ -231,12 +269,13 @@ def scan(target_url, baseline_path, policy=None):
                 if item["url"] in new
                 and (item["category"], item["url"], item["evidence_masked"]) not in active]
     tool_check = probe_headers(target_url, baseline_path.parent / ".curl-headers.txt", resolved_ip)
-    baseline_path.write_text(json.dumps({"hashes": new, "active_findings": findings},
+    baseline_path.write_text(json.dumps({"hashes": new, "active_findings": findings,
+                                         "team_baselines": team_baselines},
                                         ensure_ascii=False, indent=2), encoding="utf-8")
     return {"scan_id": datetime.now(timezone.utc).isoformat(), "simulated": False,
             "data_kind": policy["data_kind"], "target_url": target_url,
             "pages": pages, "findings": findings, "resolved_findings": resolved,
-            "changes": changes, "tool_checks": [tool_check]}
+            "changes": changes, "tool_checks": [tool_check], "module_runs": module_runs}
 
 
 def html_report(result):
@@ -273,6 +312,10 @@ li{{overflow-wrap:anywhere}}.note{{background:#eef5ff;padding:1em}}</style>
 <h2>被动配置观察</h2><p>curl HEAD：{escape(result['tool_checks'][0]['status'])}；
 缺少响应头仅为配置观察，是否构成风险仍需核实。</p>
 <ul>{list_items(result['tool_checks'][0]['observations'])}</ul>
+<h2>检测模块执行情况</h2><ul>{''.join(
+    '<li>' + escape(run['module']) + ' @ ' + escape(run['url']) + ': '
+    + escape(run['status']) + ('（' + escape(run['reason']) + '）' if run.get('reason') else '') + '</li>'
+    for run in result.get('module_runs', [])) or '<li>未启用额外检测模块</li>'}</ul>
 </html>"""
 
 
@@ -283,7 +326,9 @@ def save_result(result, output_path, report_path, history_path):
                "pages": len(result["pages"]), "findings": len(result["findings"]),
                "resolved_findings": len(result["resolved_findings"]),
                "changes": len(result["changes"]),
-               "tool_observations": len(result["tool_checks"][0]["observations"])}
+               "tool_observations": len(result["tool_checks"][0]["observations"]),
+               "module_failures": sum(run["status"] == "failed"
+                                      for run in result.get("module_runs", []))}
     with history_path.open("a", encoding="utf-8") as history:
         history.write(json.dumps(summary, ensure_ascii=False) + "\n")
 

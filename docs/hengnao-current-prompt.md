@@ -19,6 +19,9 @@
 3. changes 只表示内容哈希变化。说明 URL 和脱敏证据，不直接称为篡改。
 4. tool_checks 中 status=ok 且 observations 有内容时，只放进“被动配置观察”。例如缺少 X-Content-Type-Options，仅表示本次响应头未出现该项，不列为已确认漏洞；工具状态为 error 或 unavailable 时说明检查未完成。
 5. pages 中的 HTTP 状态码只说明本次请求的响应，不证明未测试路径、其他用户权限或全站无风险。
+6. module_runs 记录本地检测器的实际执行范围。若某模块 status=failed 或 skipped，必须在“待核实事项”说明该模块未完成，不得把“无发现”写成“已排除风险”。findings 中的 source_module、rule_id、priority_hint 只能作为来源和人工复核线索，不得覆盖 verification=待核实、severity=待定。
+
+同一配置问题可能同时出现在 findings（团队弱配置模块）和 tool_checks.observations（curl HEAD）；各栏按原始数组如实展示，并注明“同一类配置观察，未自动证明为独立漏洞”。不得将两个数组相加宣称为独立漏洞总数。
 
 只引用 JSON 中的 URL、类别、状态、脱敏证据和数量。若字段存在，可引用 potential_impact 和 remediation_if_confirmed，但必须保留其中的“若”“仅在核实后”等条件，不能写成已造成影响或已完成修复。resolved_findings 的 resolution_status=rule_no_longer_matched 只表示规则本次未再命中；changes 的 interpretation 是内容变化的边界说明。不要输出完整密钥、密码或敏感值；不要把 DEMO-ONLY 等演示标记当作真实密钥。verification 或 severity 为 pending 时保持“待核实/待定”，不得擅自改成高危或已验证。对未提供异常证据的页面，只说“本次资料未提供异常证据”。
 
@@ -38,4 +41,4 @@ API 返回数据：
 
 ## 示例验收点（不要复制进模型提示词）
 
-首次运行：若本次 JSON 是 `findings=1`、`resolved_findings=0`、`changes=0`，报告的“当前发现”必须列出 1 条，不得写“无”。复测运行：若本次 JSON 是 `findings=0`、`resolved_findings=1`、`changes=1`，报告的“当前发现”才应写“无”，敏感字段条目只出现在“本次已消失”。两种情况下，`tool_checks` 中的安全头缺失都只属于“被动配置观察”。
+启用团队检测模块的当前本机样例：首次运行 `findings=3`（1 条虚构敏感字段、2 条弱配置观察）、`resolved_findings=0`、`changes=0`；复测移除虚构敏感字段后 `findings=2`、`resolved_findings=1`、`changes=1`。两个弱配置观察持续存在，不能写“当前发现无”。`tool_checks` 中的 curl 安全头缺失另计为被动观察，不得再称为第三条独立弱配置漏洞。实际运行仍以本次 JSON 为准。

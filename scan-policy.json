@@ -2,6 +2,9 @@
   "target_url": "http://127.0.0.1:8765/",
   "allowed_paths": ["/", "/about.html", "/public/config.txt"],
   "interval_seconds": 30,
+  "team_modules": ["sensitive", "encoded_secret", "baseline", "external_links", "weak_configuration"],
+  "baseline_ignore_selectors": ["[data-ignore=\"dynamic\"]"],
+  "external_link_blocklist": ["blocked.example.invalid"],
   "sensitive_rules": [
     {
       "name": "api_key",

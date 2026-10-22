@@ -15,3 +15,4 @@
 - [公开数据与远端巡检路线](docs/public-data-and-remote-scan.md)：限域 HTTPS 巡检、OSV/CISA 漏洞情报，以及 GitHub Actions 远端扫描公开测试靶场的方案。
 - [输入网址实时巡检](docs/public-data-and-remote-scan.md#恒脑输入网址后立即巡检)：带密钥的 `POST /scan` 根据预先配置的授权目标策略选择网站，实时运行后返回本次 JSON；目标必须在执行主机上可达。
 - [云端实时 API 部署步骤](docs/deploy-live-api.md)：将巡检 API 部署为 HTTPS Web Service，并将恒脑工具改为调用本次扫描接口。
+- [恒脑多节点实验工作流](docs/hengnao-platform-branching.md)：记录输入提取、需求路由和最终输出的账号内复测；该实验工作流尚未调用仓库的 `/scan` API，不与上面的 API 工具工作流混为一谈。

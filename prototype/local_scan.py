@@ -155,7 +155,7 @@ def probe_headers(target_url, raw_output_path, resolved_ip=None):
             "http_status": http_status, "observations": observations}
 
 
-def scan(target_url, baseline_path, policy=None):
+def scan(target_url, baseline_path, policy=None, assets=None):
     policy = policy or load_policy()
     if target_url != policy["target_url"]:
         raise ValueError("Target URL does not match scan policy")
@@ -168,6 +168,7 @@ def scan(target_url, baseline_path, policy=None):
     saved = json.loads(baseline_path.read_text(encoding="utf-8")) if baseline_path.exists() else {}
     old = saved.get("hashes", saved)
     previous = saved.get("active_findings", [])
+    scan_id = datetime.now(timezone.utc).isoformat()
     new, pages, findings, changes = {}, [], [], []
     queue, seen = deque([target_url]), set()
 
@@ -187,11 +188,26 @@ def scan(target_url, baseline_path, policy=None):
             status = response.status
             body = response.read(MAX_BYTES + 1)
             content_type = response.getheader("Content-Type", "")
+            response_headers = response.getheaders() if assets is not None else []
         finally:
             connection.close()
         if len(body) > MAX_BYTES:
             raise ValueError(f"Page too large: {url}")
         pages.append({"url": url, "status": status})
+        if assets is not None:
+            mime = content_type.split(";", 1)[0].strip().lower()
+            resource_type = {"text/html": "html", "text/plain": "text", "text/css": "style",
+                             "text/javascript": "script", "application/javascript": "script",
+                             "application/json": "json"}.get(mime, "other")
+            safe_headers = {key.lower(): value for key, value in response_headers
+                            if key.lower() in {"content-type", "content-length", "cache-control",
+                                               "content-security-policy", "x-frame-options",
+                                               "x-content-type-options", "strict-transport-security",
+                                               "access-control-allow-origin"}}
+            assets.append({"schema_version": "1.0", "scan_id": scan_id, "url": url,
+                           "resource_type": resource_type, "content_type": content_type,
+                           "status_code": status, "headers": safe_headers,
+                           "body_text": body.decode("utf-8", errors="replace") if resource_type != "other" else ""})
         if status != 200 or not ("text/html" in content_type or "text/plain" in content_type):
             continue
         text = body.decode("utf-8", errors="replace")
@@ -243,7 +259,7 @@ def scan(target_url, baseline_path, policy=None):
     tool_check = probe_headers(target_url, baseline_path.parent / ".curl-headers.txt", resolved_ip)
     baseline_path.write_text(json.dumps({"hashes": new, "active_findings": findings},
                                         ensure_ascii=False, indent=2), encoding="utf-8")
-    return {"scan_id": datetime.now(timezone.utc).isoformat(), "simulated": False,
+    return {"scan_id": scan_id, "simulated": False,
             "data_kind": policy["data_kind"], "target_url": target_url,
             "pages": pages, "findings": findings, "resolved_findings": resolved,
             "changes": changes, "tool_checks": [tool_check]}
@@ -309,6 +325,7 @@ if __name__ == "__main__":
     parser.add_argument("--output", type=Path, default=Path("demo-result.json"))
     parser.add_argument("--report", type=Path, default=Path("demo-report.html"))
     parser.add_argument("--history", type=Path, default=Path("demo-history.jsonl"))
+    parser.add_argument("--assets-output", type=Path, help="write fetched assets as private JSONL for detector testing")
     parser.add_argument("--watch", action="store_true", help="repeat using policy interval_seconds")
     parser.add_argument("--interval", type=int, help="override policy interval; repeat until Ctrl+C")
     args = parser.parse_args()
@@ -322,8 +339,12 @@ if __name__ == "__main__":
     try:
         while True:
             try:
-                result = scan(target_url, args.baseline, policy)
+                assets = [] if args.assets_output else None
+                result = scan(target_url, args.baseline, policy, assets)
                 save_result(result, args.output, args.report, args.history)
+                if args.assets_output:
+                    args.assets_output.write_text("".join(json.dumps(asset, ensure_ascii=False) + "\n"
+                                                         for asset in assets), encoding="utf-8")
                 print(f"Saved {args.output} and {args.report}: {len(result['pages'])} pages, "
                       f"{len(result['findings'])} active, {len(result['resolved_findings'])} resolved, "
                       f"{len(result['changes'])} changed", flush=True)

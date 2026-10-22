@@ -36,6 +36,9 @@ class FakeResponse:
     def getheader(self, *_):
         return "text/html" if self.path == "/demo/" else "text/plain"
 
+    def getheaders(self):
+        return [("Content-Type", self.getheader()), ("Set-Cookie", "session=private")]
+
 
 class FakeConnection:
     paths = []
@@ -64,15 +67,20 @@ with tempfile.TemporaryDirectory() as temporary:
     path = root / "policy.json"
     path.write_text(json.dumps(policy), encoding="utf-8")
     loaded = local_scan.load_policy(path)
+    assets = []
     with patch.object(local_scan, "public_address", return_value="203.0.113.9"), \
          patch.object(local_scan, "PinnedHTTPSConnection", FakeConnection), \
          patch.object(local_scan, "probe_headers", return_value={"status": "ok", "observations": []}):
-        result = local_scan.scan(policy["target_url"], root / "baseline.json", loaded)
+        result = local_scan.scan(policy["target_url"], root / "baseline.json", loaded, assets)
     assert FakeConnection.paths == ["/demo/", "/demo/config.txt"]
     assert len(result["findings"]) == 2
     assert {item["category"] for item in result["findings"]} == {"sensitive_exposure", "mixed_content"}
     assert "DEMO-ONLY" not in json.dumps(result)
     assert result["data_kind"] == "public_synthetic_demo"
+    assert len(assets) == 2 and all(item["scan_id"] == result["scan_id"] for item in assets)
+    assert assets[0]["resource_type"] == "html" and assets[0]["status_code"] == 200
+    assert "set-cookie" not in assets[0]["headers"]
+    assert assets[1]["body_text"] == "api_key=DEMO-ONLY-12345"
     assert "公开演示站" in local_scan.html_report(result)
     policy["target_url"] = "https://127.0.0.1/demo/"
     path.write_text(json.dumps(policy), encoding="utf-8")

@@ -4,6 +4,8 @@ demo-report.html
 demo-history.jsonl
 .local-api-key
 .live-scans/
+assets.jsonl
+findings.jsonl
 .curl-headers.txt
 scan-public-policy.json
 .public-baseline.json

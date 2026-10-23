@@ -1,5 +1,7 @@
 # 恒脑网站巡检验证版工作流
 
+> 历史说明：本文件记录早期纯模拟流程。真实 API 已实现，正式接入请改用 [hengnao-live-integration.md](hengnao-live-integration.md) 和 [openapi.json](openapi.json)。
+
 > 负责人：wjy  
 > 记录日期：2026 年 10 月 2 日  
 > 状态：已跑通模拟资料分析；尚未接入巡检 API

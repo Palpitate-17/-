@@ -1,17 +1,29 @@
-# -
-命题企业：杭州安恒信息技术股份有限公司 赛题介绍：政企网站长期暴露在互联网中，易因组件漏洞、配置缺陷、页面被篡改或挂马而遭受攻击；同时，运维人员误发布文件、代码或业务数据，也可能造成敏感信息泄露。传统人工巡检覆盖有限、响应滞后。本赛题拟构建网站安全智能巡检智能体，在获得授权的前提下，周期性发现站点及下属页面，编排开源安全工具完成风险评估、内容完整性检测与敏感信息检查，形成可解释、可跟踪、可复测的风险闭环，提升单位网站持续安全运营能力。
+# 网站安全智能巡检
 
-## 当前进度
+本项目面向获得授权的网站巡检：发现页面，执行受控的被动检测，记录脱敏证据和复测状态，再由恒脑智能体解释结果。扫描范围必须事先明确；规则命中不等于已确认漏洞。
 
-- [恒脑与 API 联调记录](docs/hengnao-api-integration.md)：工作流已用模拟数据跑通；10 月 5 日新增离线测试材料驱动的敏感信息和页面内容变化样例。
-- [离线 API](prototype/mock_scan_api.py)：执行 `python prototype/mock_scan_api.py --self-test` 检查规则。服务不访问真实网站，所有发现均待核实。
-- [本地真实请求演示](docs/local-demo.md)：在 `127.0.0.1` 上运行自建测试站，支持定时复扫、历史统计及前后结果比较；测试内容均为虚构数据。
-- [本地巡检 API 与恒脑联调](docs/hengnao-local-api.md)：通过带密钥的 `/scan` 接口调用同一段本地巡检逻辑，再由恒脑获取结果。
-- [新目录复现指南](docs/portable-setup.md)：不依赖作者电脑路径，在独立目录完成本地启动、首次巡检、复测和可选的恒脑联调。
-- [MVP 本地演示与复测报告](docs/mvp-demo-report.md)：记录本机测试站的首次发现、修改文件与复测结果。
-- [10 月 25 日提交推进表](docs/submission-plan.md)：按比赛材料列出当前缺口、完成顺序和必交文件。
-- [作品报告内容初稿](docs/competition-report-draft.md)：按附件5章节撰写已验证的离线 MVP，标明待核对内容。
-- [恒脑当前工作流提示词](docs/hengnao-current-prompt.md)：按 API 字段区分当前发现、已消失条目、内容变化和被动配置观察。
-- [公开数据与远端巡检路线](docs/public-data-and-remote-scan.md)：限域 HTTPS 巡检、OSV/CISA 漏洞情报，以及 GitHub Actions 远端扫描公开测试靶场的方案。
-- [输入网址实时巡检](docs/public-data-and-remote-scan.md#恒脑输入网址后立即巡检)：带密钥的 `POST /scan` 根据预先配置的授权目标策略选择网站，实时运行后返回本次 JSON；目标必须在执行主机上可达。
-- [云端实时 API 部署步骤](docs/deploy-live-api.md)：将巡检 API 部署为 HTTPS Web Service，并将恒脑工具改为调用本次扫描接口。
+## 当前实现
+
+| 模块 | 当前状态 | 入口 |
+|---|---|---|
+| Cloudflare Pages 即时巡检 | 已部署；只读取公开扫描器测试靶场的三个预设页面 | [部署说明](docs/cloudflare-live-scan.md) |
+| 恒脑私有智能体 | 已发布；当前调用上述 Pages 接口 | [交付记录](docs/hengnao-private-delivery.md) |
+| 真实巡检 API | 已实现版本化异步接口、SQLite 状态、API Key、覆盖状态和 JSON 报告；本地闭环已验证，尚未部署并接入恒脑 | [接口契约](docs/interface_contract.md)、[联调手册](docs/hengnao-live-integration.md) |
+| 页面发现 | 同源、路径、页数、深度、速率和响应大小受控的 HTTP 爬取 | [爬虫实现](app/crawler.py) |
+| 检测规则与评测 | 敏感信息、DOM/脚本基线、外链变化和本地风险规则 | [检测模块](docs/ljy-module-readme.md)、[评测结果](docs/evaluation.md) |
+| 复测闭环 | 本地验证首次基线、页面变化、恢复页面和单条 `resolved` | [验证记录](reports/e2e_verification.md) |
+
+## 本地运行真实巡检 API
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -X utf8 -m pytest -q
+.\scripts\run_local_demo.ps1
+```
+
+API 文档默认位于 `http://127.0.0.1:8000/docs`；可供恒脑导入的静态定义为 [`docs/openapi.json`](docs/openapi.json)。
+
+早期离线 MVP、模拟 API 和本地演示仍保留在 [`prototype/`](prototype/) 与 [`docs/`](docs/) 中，便于复现开发过程。提交计划见 [`docs/submission-plan.md`](docs/submission-plan.md)。
+
+所有扫描和测试只能用于本人所有或明确获得授权的目标。仓库不得提交 API Key、账号密码、真实个人信息或未脱敏的生产巡检日志。

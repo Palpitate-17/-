@@ -15,3 +15,6 @@ public-history.jsonl
 vuln-intel.json
 .osv-demo.json
 __pycache__/
+.dev.vars
+.wrangler/
+.wrangler-dry-run/

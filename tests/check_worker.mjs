@@ -39,7 +39,21 @@ test('requests only three allowlisted pages and returns masked evidence', async 
   assert.equal(data.scan_status, 'complete');
   assert.equal(data.findings.length, 1);
   assert.equal(data.findings[0].category, 'mixed_content');
-  assert.equal(data.tool_checks[0].observations.length, 3);
+  assert.equal(data.tool_checks[0].observations.length, 6);
+  assert.equal(data.tool_checks[1].observations.length, 0);
+});
+
+test('audits HTTP resources while respecting frame protection headers', async () => {
+  const data = await (await handle(request(), { SCAN_API_KEY: key }, async () =>
+    new Response('<img src="http://example.invalid/a.png"><link rel="stylesheet" href="http://example.invalid/a.css">', {
+      status: 200, headers: {
+        'content-type': 'text/html', 'x-content-type-options': 'nosniff',
+        'content-security-policy': "frame-ancestors 'none'",
+      },
+    }))).json();
+  assert.equal(data.tool_checks[0].observations.length, 0);
+  assert.equal(data.tool_checks[1].observations.length, 6);
+  assert.ok(data.tool_checks[1].observations.every(item => item.verification === 'pending'));
 });
 
 test('reports a failed page as incomplete', async () => {

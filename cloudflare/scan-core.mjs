@@ -62,10 +62,24 @@ function analyzeText(url, text, contentType) {
   return findings;
 }
 
+function inspectHtmlResources(url, text) {
+  const observations = [];
+  for (const match of text.matchAll(/<(script|link|img|iframe|source)\b[^>]*>/gi)) {
+    const tag = match[1].toLowerCase();
+    if (tag === 'script' || (tag === 'link' && !/\brel\s*=\s*["']?stylesheet\b/i.test(match[0]))) continue;
+    if (!/\b(?:src|href|srcset)\s*=\s*["']?http:\/\//i.test(match[0])) continue;
+    observations.push({ category: 'http_resource_reference', url,
+      evidence_masked: `HTTPS page references an HTTP ${tag} resource`,
+      verification: 'pending', severity: 'pending' });
+  }
+  return observations;
+}
+
 async function scan(fetcher = fetch) {
   const pages = [];
   const findings = [];
   const observations = [];
+  const resourceObservations = [];
   const errors = [];
   for (const path of PATHS) {
     const url = new URL(path, TARGET).href;
@@ -83,8 +97,17 @@ async function scan(fetcher = fetch) {
       }
       const contentType = response.headers.get('content-type') || '';
       if (!/text\/html|text\/plain/i.test(contentType)) continue;
+      if (/text\/html/i.test(contentType) &&
+          !response.headers.has('x-frame-options') &&
+          !/\bframe-ancestors\b/i.test(response.headers.get('content-security-policy') || '')) {
+        observations.push({ category: 'missing_frame_protection', url,
+          evidence_masked: 'Neither X-Frame-Options nor CSP frame-ancestors observed',
+          verification: 'pending', severity: 'pending' });
+      }
       const body = await readBounded(response.body, MAX_BODY);
-      findings.push(...analyzeText(url, new TextDecoder().decode(body), contentType));
+      const text = new TextDecoder().decode(body);
+      findings.push(...analyzeText(url, text, contentType));
+      if (/text\/html/i.test(contentType)) resourceObservations.push(...inspectHtmlResources(url, text));
     } catch (error) {
       errors.push({ url, error: error.message === 'body_too_large' ? 'body_too_large' : 'request_failed' });
     }
@@ -94,8 +117,10 @@ async function scan(fetcher = fetch) {
     execution_mode: 'on_demand', target_url: TARGET,
     scan_status: errors.length || pages.some(page => page.status !== 200) ? 'partial' : 'complete',
     pages, findings, resolved_findings: [], changes: [], baseline_available: false, errors,
-    tool_checks: [{ tool: 'cloudflare_worker_fetch', status: errors.length ? 'partial' : 'ok',
-      method: 'GET', observations }],
+    tool_checks: [
+      { tool: 'http_header_audit', status: errors.length ? 'partial' : 'ok', method: 'GET', observations },
+      { tool: 'html_resource_audit', status: errors.length ? 'partial' : 'ok', method: 'GET', observations: resourceObservations },
+    ],
   };
 }
 

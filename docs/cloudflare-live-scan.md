@@ -1,12 +1,14 @@
 # Cloudflare 上的即时巡检接口
 
-恒脑的用户私有 API 工具调用 Cloudflare Pages Functions 的 `POST /scan`。该请求实时读取预设的三个 Google Firing Range 测试靶场页面，返回实际 HTTP 状态、脱敏规则发现和被动配置观察。服务不依赖本机 Python API、隧道或用户电脑在线。
+恒脑的用户私有 API 工具调用 Cloudflare Pages Functions 的 `POST /scan`。该请求实时读取预设的三个 Google Firing Range 测试靶场页面，返回实际 HTTP 状态、脱敏规则发现和被动观察。服务不依赖本机 Python API、隧道或用户电脑在线。
 
 ## 固定范围
 
 目前只接受 `https://public-firing-range.appspot.com/`，只请求 `/`、`/mixedcontent/index.html` 和 `/clickjacking/index.html`。其他网址返回 HTTP 400，且不会请求该网址。请求为低影响 GET，不跟随重定向；单页最多读取 256 KiB。新增网站须先取得明确授权及范围，再修改服务端白名单并复核规则。
 
 本接口只有本轮的发现和被动配置观察，没有持久化的前次基线，因此不会判定“本次已消失”或“内容变化”。`scan_status=partial` 表示至少一个页面没有正常完成；此时不能把空 `findings` 解释成安全。`result_key` 是同一结果的 JSON 字符串，供恒脑代码节点引用。
+
+`tool_checks` 中有两项内置只读检查：`http_header_audit` 记录缺少 `X-Content-Type-Options`，以及 HTML 页面未观察到 `X-Frame-Options` 或 CSP `frame-ancestors` 的情况；`html_resource_audit` 记录 HTTPS 页面中通过 HTTP 引用的图片、样式表、iframe 或媒体资源。规则发现仍单独放在 `findings`。这些观察均为 `pending`，不等于已确认漏洞。这里的两项检查是本项目代码实现的被动规则，**没有调用 ZAP 或其他外部扫描器**。
 
 ## 当前部署
 

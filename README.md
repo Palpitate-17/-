@@ -6,8 +6,8 @@
 
 | 模块 | 当前状态 | 入口 |
 |---|---|---|
-| Cloudflare Pages 即时巡检 | 已部署；只读取公开扫描器测试靶场的三个预设页面 | [部署说明](docs/cloudflare-live-scan.md) |
-| 恒脑私有智能体 | 已发布；当前调用上述 Pages 接口 | [交付记录](docs/hengnao-private-delivery.md) |
+| Cloudflare Pages 即时巡检 | 已部署；由用户请求触发，只读取公开扫描器测试靶场的三个预设页面 | [部署说明](docs/cloudflare-live-scan.md) |
+| 恒脑私有智能体 | 已发布；用户输入后调用上述 Pages 接口并输出当轮报告 | [交付记录](docs/hengnao-private-delivery.md) |
 | 真实巡检 API | 已实现版本化异步接口、SQLite 状态、API Key、覆盖状态和 JSON 报告；本地闭环已验证，尚未部署并接入恒脑 | [接口契约](docs/interface_contract.md)、[联调手册](docs/hengnao-live-integration.md) |
 | 页面发现 | 同源、路径、页数、深度、速率和响应大小受控的 HTTP 爬取 | [爬虫实现](app/crawler.py) |
 | 检测规则与评测 | 敏感信息、DOM/脚本基线、外链变化和本地风险规则 | [检测模块](docs/ljy-module-readme.md)、[评测结果](docs/evaluation.md) |
@@ -24,6 +24,6 @@ python -m venv .venv
 
 API 文档默认位于 `http://127.0.0.1:8000/docs`；可供恒脑导入的静态定义为 [`docs/openapi.json`](docs/openapi.json)。
 
-早期离线 MVP、模拟 API 和本地演示仍保留在 [`prototype/`](prototype/) 与 [`docs/`](docs/) 中，便于复现开发过程。提交计划见 [`docs/submission-plan.md`](docs/submission-plan.md)。
+早期离线 MVP、模拟 API 和本地演示仍保留在 [`prototype/`](prototype/) 与 [`docs/`](docs/) 中，便于复现开发过程。当前已发布智能体仅允许预设靶场；新增目标的授权核定及白名单流程见 [`docs/authorized-targets.md`](docs/authorized-targets.md)。提交计划见 [`docs/submission-plan.md`](docs/submission-plan.md)。
 
 所有扫描和测试只能用于本人所有或明确获得授权的目标。仓库不得提交 API Key、账号密码、真实个人信息或未脱敏的生产巡检日志。

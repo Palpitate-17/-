@@ -4,7 +4,7 @@
 
 ## 固定范围
 
-目前只接受 `https://public-firing-range.appspot.com/`，只请求 `/`、`/mixedcontent/index.html` 和 `/clickjacking/index.html`。其他网址返回 HTTP 400，且不会请求该网址。请求为低影响 GET，不跟随重定向；单页最多读取 256 KiB。新增网站须先取得明确授权及范围，再修改服务端白名单并复核规则。
+目前只接受 `https://public-firing-range.appspot.com/`，只请求 `/`、`/mixedcontent/index.html` 和 `/clickjacking/index.html`。其他网址返回 HTTP 400，且不会请求该网址。请求为低影响 GET，不跟随重定向；单页最多读取 256 KiB。新增网站须先取得明确授权及范围，再修改服务端白名单并复核规则，流程见 [`docs/authorized-targets.md`](authorized-targets.md)。公开可访问本身不代表允许自动扫描。
 
 本接口只有本轮的发现和被动配置观察，没有持久化的前次基线，因此不会判定“本次已消失”或“内容变化”。`scan_status=partial` 表示至少一个页面没有正常完成；此时不能把空 `findings` 解释成安全。`result_key` 是同一结果的 JSON 字符串，供恒脑代码节点引用。
 
@@ -28,6 +28,6 @@ npx wrangler pages deploy public --project-name hengnao-authorized-scan --branch
 
 私有工具能力路径 `/scan`，方法 `POST`，必填 Body 字段 `target_url`。智能体工具节点引用路由代码节点的 `target_url`，报告代码节点的 `input` 引用路由结果，`scan_result` 引用工具输出 `result_key`；结束节点引用报告代码节点的 `result_key`。后者是已校验的可读文本。
 
-试运行输入：`请对 https://public-firing-range.appspot.com/ 执行网站巡检，仅检查预设的三个公开测试页面，并报告实际请求结果。` 验收时核对工具节点输出新的 `scan_id`、`execution_mode=on_demand`、`scan_status` 和三个页面的 HTTP 状态，再核对结束节点报告使用同一时间。2026-10-23 的一次恒脑试运行已完成，三页均返回 200，规则发现 1 条、被动观察 3 条；规则命中仍待核实。
+试运行输入：`请对 https://public-firing-range.appspot.com/ 执行网站巡检，仅检查预设的三个公开测试页面，并报告实际请求结果。` 验收时核对工具节点输出新的 `scan_id`、`execution_mode=on_demand`、`scan_status` 和三个页面的 HTTP 状态，再核对结束节点报告使用同一时间。2026-10-23 的一次恒脑试运行已完成，三页均返回 200，规则发现 1 条、被动观察 3 条；2026-10-24 的 Pages 接口验证为 3 页、规则发现 1 条、响应头观察 6 条、资源观察 0 条。观察数量随目标响应变化；规则命中仍待核实。
 
 当前接口没有登录态扫描、组件版本识别、漏洞利用或任意网站的授权范围。

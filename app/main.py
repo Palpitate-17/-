@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import secrets
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated
@@ -65,7 +66,9 @@ def create_app(
     application.state.service = service
 
     def require_api_key(x_api_key: Annotated[str | None, Header()] = None) -> None:
-        if settings.api_key and x_api_key != settings.api_key:
+        if not settings.api_key:
+            raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="服务端未配置 API Key")
+        if not x_api_key or not secrets.compare_digest(x_api_key, settings.api_key):
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="API Key 无效")
 
     auth = Depends(require_api_key)

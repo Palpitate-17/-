@@ -54,6 +54,14 @@ def test_api_requires_key_and_exposes_versioned_contract(tmp_path):
     assert "/api/v1/findings/{finding_id}/retest" in openapi["paths"]
 
 
+def test_api_refuses_business_calls_without_server_key(tmp_path):
+    application = create_app(Settings(database_path=tmp_path / "missing-key.db"))
+    client = TestClient(application)
+    assert client.get("/health").status_code == 200
+    response = client.post("/api/v1/scans", json=_payload())
+    assert response.status_code == 503
+
+
 def test_failed_scope_is_not_reported_as_empty_success(tmp_path):
     client = _client(tmp_path)
     payload = _payload()

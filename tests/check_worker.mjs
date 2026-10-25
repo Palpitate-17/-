@@ -8,10 +8,32 @@ const request = (target = TARGET, sentKey = key) => new Request('https://worker.
   body: JSON.stringify({ target_url: target }),
 });
 
-test('rejects an unlisted target before any outbound request', async () => {
+test('accepts an arbitrary public target and follows at most two same-origin links', async () => {
+  const urls = [];
+  const fetcher = async url => {
+    urls.push(url);
+    return new Response(url.endsWith('/')
+      ? '<a href="/about">About</a><a href="https://other.example/x">Outside</a>' : '<h1>About</h1>',
+      { status: 200, headers: { 'content-type': 'text/html' } });
+  };
+  const response = await handle(request('https://example.com/'), { SCAN_API_KEY: key }, fetcher);
+  const result = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(result.scan_status, 'complete');
+  assert.equal(result.data_kind, 'user_supplied_public_url');
+  assert.deepEqual(urls, ['https://example.com/', 'https://example.com/about']);
+});
+
+test('rejects blacklisted and nonpublic targets before any outbound request', async () => {
   let called = false;
-  const response = await handle(request('https://example.com/'), { SCAN_API_KEY: key }, () => { called = true; });
-  assert.equal(response.status, 400);
+  for (const target of ['https://www.gov.cn/', 'http://127.0.0.1/', 'http://internal.local/']) {
+    const response = await handle(request(target), { SCAN_API_KEY: key }, () => { called = true; });
+    const result = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(result.scan_status, 'rejected');
+    assert.deepEqual(result.pages, []);
+    assert.equal(JSON.parse(result.result_key).scan_status, 'rejected');
+  }
   assert.equal(called, false);
 });
 

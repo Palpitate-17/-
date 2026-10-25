@@ -25,15 +25,22 @@ class LiveResultChecks(unittest.TestCase):
     def test_valid_fresh_result(self):
         output = module.inspect(json.dumps(self.plan), json.dumps({"result_key": json.dumps(self.result)}))
         self.assertEqual(output["status"], "live_result")
-        self.assertIn("本轮实时请求", output["report"])
+        self.assertIn("本轮按输入网址", output["report"])
 
     def test_handler_returns_readable_end_node_value(self):
         args = SimpleNamespace(input=SimpleNamespace(input=json.dumps(self.plan), scan_result=json.dumps(self.result)))
-        self.assertTrue(module.handler(args)["result_key"].startswith("公开测试靶场即时巡检"))
+        self.assertTrue(module.handler(args)["result_key"].startswith("网站即时巡检"))
 
-    def test_other_target_rejected(self):
+    def test_other_target_result_mismatch_rejected(self):
         self.plan["target_url"] = "https://example.com/"
-        self.assertEqual(module.inspect(self.plan, self.result)["status"], "out_of_scope")
+        self.assertEqual(module.inspect(self.plan, self.result)["status"], "invalid_result")
+
+    def test_other_public_target_result_accepted(self):
+        self.plan["target_url"] = "https://example.com/"
+        self.result["target_url"] = "https://example.com/"
+        self.result["data_kind"] = "user_supplied_public_url"
+        self.result["pages"] = [{"url": "https://example.com/", "status": 200}]
+        self.assertEqual(module.inspect(self.plan, self.result)["status"], "live_result")
 
     def test_partial_result_is_not_clean(self):
         self.result["scan_status"] = "partial"

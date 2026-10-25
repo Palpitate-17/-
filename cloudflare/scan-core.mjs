@@ -1,9 +1,13 @@
-// On-demand, read-only scan of the explicitly allowed public scanner testbed.
+// On-demand, read-only inspection of a user-supplied public HTTP(S) website.
 const TARGET = 'https://public-firing-range.appspot.com/';
 const PATHS = ['/', '/mixedcontent/index.html', '/clickjacking/index.html'];
+const MAX_PAGES = 3;
 const MAX_BODY = 256 * 1024;
 const MAX_REQUEST = 4096;
 const TIMEOUT_MS = 5000;
+const BLACKLIST_SUFFIXES = ['gov.cn', 'mil.cn', 'xn--zfr164b.cn', 'gov', 'mil'];
+const BLACKLIST_EXACT = ['zwfw.cscse.edu.cn', 'hengnao-authorized-scan.pages.dev'];
+const NONPUBLIC_SUFFIXES = ['localhost', 'local', 'internal', 'test', 'invalid', 'onion'];
 
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
@@ -20,6 +24,24 @@ function sameSecret(received, expected) {
   let difference = a.length ^ b.length;
   for (let i = 0; i < Math.max(a.length, b.length); i++) difference |= (a[i] || 0) ^ (b[i] || 0);
   return difference === 0;
+}
+
+function hasSuffix(host, suffix) {
+  return host === suffix || host.endsWith(`.${suffix}`);
+}
+
+function validateTarget(raw) {
+  if (typeof raw !== 'string' || raw.length > 2048 || /\s/.test(raw)) return { reason: 'invalid_target' };
+  let url;
+  try { url = new URL(raw); } catch { return { reason: 'invalid_target' }; }
+  const host = url.hostname.toLowerCase().replace(/\.$/, '');
+  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password ||
+      url.port || url.hash || !host.includes('.') || !/^[a-z0-9.-]+$/.test(host) ||
+      host.includes('..') || host.startsWith('-') || host.endsWith('-') ||
+      host.includes(':') || /^\d+(?:\.\d+)*$/.test(host)) return { reason: 'invalid_target' };
+  if (BLACKLIST_EXACT.includes(host) || BLACKLIST_SUFFIXES.some(suffix => hasSuffix(host, suffix)) ||
+      NONPUBLIC_SUFFIXES.some(suffix => hasSuffix(host, suffix))) return { reason: 'blocked_target' };
+  return { url };
 }
 
 async function readBounded(stream, limit) {
@@ -55,7 +77,8 @@ function analyzeText(url, text, contentType) {
     findings.push({ category: 'sensitive_exposure', url, evidence_masked: 'api_key=[REDACTED]',
       verification: 'pending', severity: 'pending' });
   }
-  if (/text\/html/i.test(contentType) && /<script\b[^>]*\bsrc\s*=\s*["']http:\/\//i.test(text)) {
+  if (url.startsWith('https:') && /text\/html/i.test(contentType) &&
+      /<script\b[^>]*\bsrc\s*=\s*["']http:\/\//i.test(text)) {
     findings.push({ category: 'mixed_content', url,
       evidence_masked: 'HTTPS page loads a script over HTTP', verification: 'pending', severity: 'pending' });
   }
@@ -75,14 +98,34 @@ function inspectHtmlResources(url, text) {
   return observations;
 }
 
-async function scan(fetcher = fetch) {
+function discoverLinks(text, base, origin) {
+  const links = [];
+  for (const match of text.matchAll(/<a\b[^>]*\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi)) {
+    try {
+      const link = new URL(match[1] ?? match[2] ?? match[3], base);
+      link.hash = '';
+      if (link.origin === origin && !/(?:logout|signout|delete|remove|reset)/i.test(link.pathname)) {
+        links.push(link.href);
+      }
+    } catch { /* Ignore malformed links. */ }
+    if (links.length >= 20) break;
+  }
+  return links;
+}
+
+async function scan(fetcher = fetch, target = TARGET) {
+  const targetUrl = new URL(target);
+  const queue = target === TARGET ? PATHS.map(path => new URL(path, TARGET).href) : [targetUrl.href];
+  const seen = new Set();
   const pages = [];
   const findings = [];
   const observations = [];
   const resourceObservations = [];
   const errors = [];
-  for (const path of PATHS) {
-    const url = new URL(path, TARGET).href;
+  while (queue.length && seen.size < MAX_PAGES) {
+    const url = queue.shift();
+    if (seen.has(url)) continue;
+    seen.add(url);
     try {
       const response = await fetcher(url, {
         method: 'GET', redirect: 'manual', signal: AbortSignal.timeout(TIMEOUT_MS),
@@ -107,19 +150,28 @@ async function scan(fetcher = fetch) {
       const body = await readBounded(response.body, MAX_BODY);
       const text = new TextDecoder().decode(body);
       findings.push(...analyzeText(url, text, contentType));
-      if (/text\/html/i.test(contentType)) resourceObservations.push(...inspectHtmlResources(url, text));
+      if (/text\/html/i.test(contentType)) {
+        if (url.startsWith('https:')) resourceObservations.push(...inspectHtmlResources(url, text));
+        if (target !== TARGET) {
+          for (const link of discoverLinks(text, url, targetUrl.origin)) {
+            if (!seen.has(link) && !queue.includes(link) && queue.length + seen.size < MAX_PAGES) queue.push(link);
+          }
+        }
+      }
     } catch (error) {
       errors.push({ url, error: error.message === 'body_too_large' ? 'body_too_large' : 'request_failed' });
     }
   }
+  const partial = errors.length || pages.some(page => page.status !== 200);
   return {
-    scan_id: new Date().toISOString(), simulated: false, data_kind: 'public_scanner_testbed',
-    execution_mode: 'on_demand', target_url: TARGET,
-    scan_status: errors.length || pages.some(page => page.status !== 200) ? 'partial' : 'complete',
+    scan_id: new Date().toISOString(), simulated: false,
+    data_kind: target === TARGET ? 'public_scanner_testbed' : 'user_supplied_public_url',
+    execution_mode: 'on_demand', target_url: target, scan_status: partial ? 'partial' : 'complete',
+    scan_scope: { max_pages: MAX_PAGES, same_origin: true, methods: ['GET'], redirects: 'manual' },
     pages, findings, resolved_findings: [], changes: [], baseline_available: false, errors,
     tool_checks: [
-      { tool: 'http_header_audit', status: errors.length ? 'partial' : 'ok', method: 'GET', observations },
-      { tool: 'html_resource_audit', status: errors.length ? 'partial' : 'ok', method: 'GET', observations: resourceObservations },
+      { tool: 'http_header_audit', status: partial ? 'partial' : 'ok', method: 'GET', observations },
+      { tool: 'html_resource_audit', status: partial ? 'partial' : 'ok', method: 'GET', observations: resourceObservations },
     ],
   };
 }
@@ -130,17 +182,23 @@ async function handle(request, env, fetcher = fetch) {
   if (request.method !== 'POST' || path !== '/scan') return json({ error: 'Not found' }, 404);
   if (!env.SCAN_API_KEY || env.SCAN_API_KEY.length < 32) return json({ error: 'Service not configured' }, 503);
   if (!sameSecret(request.headers.get('x-api-key'), env.SCAN_API_KEY)) return json({ error: 'Unauthorized' }, 401);
+  let input;
   try {
     const body = await readBounded(request.body, MAX_REQUEST);
-    const input = JSON.parse(new TextDecoder().decode(body));
-    if (!input || input.target_url !== TARGET || Object.keys(input).some(key => key !== 'target_url')) {
-      return json({ error: 'Target is not in the configured scan scope' }, 400);
-    }
-  } catch {
-    return json({ error: 'Invalid JSON or request body too large' }, 400);
+    input = JSON.parse(new TextDecoder().decode(body));
+    if (!input || typeof input.target_url !== 'string' ||
+        Object.keys(input).some(key => key !== 'target_url')) throw new Error('invalid');
+  } catch { return json({ error: 'Invalid JSON or request body too large' }, 400); }
+  const validation = validateTarget(input.target_url);
+  if (!validation.url) {
+    // The connected HengNao tool still runs when its route node declines a target.
+    const rejected = { scan_status: 'rejected', reason: validation.reason,
+      execution_mode: 'on_demand', target_url: '', pages: [], findings: [],
+      resolved_findings: [], changes: [], errors: [], tool_checks: [] };
+    return json({ result_key: JSON.stringify(rejected), ...rejected });
   }
-  const result = await scan(fetcher);
+  const result = await scan(fetcher, input.target_url);
   return json({ result_key: JSON.stringify(result), ...result });
 }
 
-export { TARGET, PATHS, analyzeText, scan, handle };
+export { TARGET, PATHS, validateTarget, analyzeText, scan, handle };

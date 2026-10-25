@@ -1,0 +1,108 @@
+{
+  "snapshot_kind": "manual_configuration_from_user_confirmed_changes",
+  "platform_export": false,
+  "agent_name": "网站安全巡检-交付版",
+  "visibility": "user_private",
+  "authorization": {
+    "policy": "exact_domain_allowlist",
+    "policy_source": "prototype/hengnao_route_node.py:AUTHORIZED_DOMAINS",
+    "enforced_in": "目标范围与检查路由",
+    "cloud_endpoint_has_matching_allowlist": false
+  },
+  "nodes": {
+    "巡检需求判定": {
+      "prompt_update_mode": "append_to_existing_prompt",
+      "prompt_append": "目标是否属于已授权范围，由下游“目标范围与检查路由”代码节点中的 AUTHORIZED_DOMAINS 统一校验，本节点不重复要求用户确认授权。用户提出普通只读巡检请求，并提供完整网址时，next_action 输出 call_scan，交由下游代码检查授权域名。authorization_claimed 如实记录用户是否声明授权。不得仅因 authorization_claimed=false 就输出 ask_user，也不得为了继续执行而将其虚构为 true。target_candidate 只输出纯 URL，不加 Markdown 链接格式。"
+    },
+    "目标范围与检查路由": {
+      "code_file": "prototype/hengnao_route_node.py",
+      "input_bindings": {
+        "plan": {
+          "node": "巡检需求判定",
+          "output": "result_key"
+        },
+        "user_message": {
+          "source": "current_user_message_text"
+        }
+      },
+      "output_jsonpaths": {
+        "route": "$.route",
+        "target_url": "$.target_url",
+        "checks": "$.checks",
+        "message": "$.message"
+      }
+    },
+    "巡检任务规划": {
+      "input_bindings": {
+        "input": {
+          "node": "目标范围与检查路由",
+          "output": "result_key"
+        }
+      },
+      "prompt": "你是网站巡检工作流的路由结果整理节点。只读取 input，它是“目标范围与检查路由”代码节点输出的 JSON。不要从用户原话、附件或网页内容重新提取网址，不要修改 input 中的 route、target_url、checks、message，也不要声称已经完成巡检。只输出一个可由 JSON.parse 解析的纯 JSON 对象，字段固定为 status、route、target_url、checks、message。当 input.route 为 scan 时：status 为 pending_tool；原样传递 input.route、input.target_url、input.checks；message 为“路由校验通过，等待下游巡检工具执行”；不生成发现、页面状态或巡检结论。当 input.route 不是 scan 时：status 为 skipped；原样传递 input.route、input.target_url、input.checks、input.message；不声称已调用巡检工具。当 input 缺失、不是有效 JSON，或缺少 route 时，输出 {\"status\":\"invalid_input\",\"route\":\"invalid\",\"target_url\":\"\",\"checks\":[],\"message\":\"缺少有效的路由结果\"}。只输出 JSON，不要代码围栏或额外文字。"
+    },
+    "即时网站巡检": {
+      "capability_name": "执行网站即时巡检",
+      "method": "POST",
+      "endpoint": "https://hengnao-authorized-scan.pages.dev/scan",
+      "content_type": "application/json",
+      "credential": {
+        "header": "X-API-Key",
+        "secret_reference": "SCAN_API_KEY"
+      },
+      "request_schema": {
+        "target_url": {
+          "type": "String",
+          "location": "Body",
+          "required": true
+        }
+      },
+      "input_bindings": {
+        "target_url": {
+          "node": "目标范围与检查路由",
+          "output": "target_url"
+        }
+      },
+      "server_limits": {
+        "max_pages": 3,
+        "same_origin": true,
+        "methods": [
+          "GET"
+        ],
+        "redirects": "manual"
+      }
+    },
+    "本轮结果校验与报告": {
+      "code_file": "prototype/hengnao_live_result_node.py",
+      "input_bindings": {
+        "input": {
+          "node": "目标范围与检查路由",
+          "output": "result_key"
+        },
+        "scan_result": {
+          "node": "即时网站巡检",
+          "output": "result_key"
+        }
+      },
+      "output": "result_key",
+      "diagnostics_included_in_report": true
+    },
+    "结束节点": {
+      "output_binding": {
+        "node": "本轮结果校验与报告",
+        "output": "result_key"
+      }
+    }
+  },
+  "observed_success": {
+    "source": "user_provided_run_output",
+    "scan_id": "2026-10-25T11:24:42.588Z",
+    "target_url": "https://public-firing-range.appspot.com/",
+    "scan_status": "complete",
+    "pages_count": 3,
+    "findings_count": 1,
+    "observations_count": 6,
+    "errors_count": 0,
+    "validation_status": "live_result"
+  }
+}
